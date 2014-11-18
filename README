@@ -1,0 +1,1 @@
+for f in console crash erlang error; do for n in *-riak-debug; do cat $n/logs/platform_log_dir/${f}.log* | sed -ne '/^'`date +%Y`'/{x;s/\~/<tilde>/g;s/\n/\~/g;/^$/!p;D;};/^$/!H' | sed -e 's/$/ -- node: '"`basename $n -riak-debug`"'/'; done | sort | tr "~" "\n" | sed -e 's/<tilde>/\~/g' > master-${f}.log; done
