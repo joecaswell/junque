@@ -1,0 +1,46 @@
+#! /usr/bin/python
+from __future__ import print_function
+import json
+import readers
+import sys
+
+def _msgr(*s):
+    print(' '.join(s), file=sys.stderr, end="")
+
+def _msg(*s):
+    print(' '.join(s), file=sys.stderr)
+
+if (len(sys.argv) < 2):
+    _msg("Input filename required")
+    sys.exit(1)
+
+if (len(sys.argv) > 2):
+    outf = open(sys.argv[2],"w")
+    _msg("Writing to " + sys.argv[2])
+else:
+    outf = sys.stdout
+    _msg("Writing to sys.stdout")
+
+def assign(doc, keys, value):
+    if len(keys)==1:
+       doc[keys[0]] = value
+    else:
+       if type(doc) == list:
+           index = int(keys[0])
+       else:
+           index = keys[0]
+
+       assign(doc[index],keys[1:],value)
+
+_msg("chunk val epoch")
+for i, chunk in enumerate(readers.read_ftdc(sys.argv[1])):
+    _msgr("\x1b[2K\r %4d\r"%(i))
+    for idx in range(len(chunk[('start',)])):
+        _msgr("\x1b[2K\r %4d %3d %d\r"%(i,idx, chunk[('start',)][idx]))
+        for key in chunk.keys():
+            assign(chunk.full_ref_doc, key, chunk[key][idx])
+        json.dump(chunk.full_ref_doc, outf)
+        outf.write("\n")
+
+_msg("\nDone.")
+

@@ -1,0 +1,30 @@
+#!/usr/bin/env python
+from __future__ import print_function
+import bson
+import sys
+import argparse
+
+p = argparse.ArgumentParser()
+p.add_argument('--key', '-k', type=str)
+p.add_argument('fns', nargs='*', type=str)
+opt = p.parse_args()
+
+def prt(b, indent=' '):
+    if isinstance(b, dict):
+        print()
+        for key, value in b.items():
+            print(indent, key, end="")
+            prt(value, indent+'  ')
+    else:
+        print(b)
+
+for fn in opt.fns:
+    for b in bson.decode_file_iter(open(fn)):
+        if 'doc' not in b:
+            continue
+        b = b['doc']
+        print(fn,end="")
+        if opt.key:
+            for k in opt.key.split('.'):
+                b = b[k]
+        prt(b)
