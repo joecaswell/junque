@@ -1,0 +1,38 @@
+#!/bin/bash
+
+findgroup()
+{
+    curl -n "$1" -s -v -o - 2>&1 | sed -n -e 's/^.*Link: .*<\([^>]*\)>. rel="next".*$/Next: \1/p;/"name": *"'$2'"/,/"id":/{s/.*"id": *,\([^,]*\).*/\1/p;};' | while read group
+  do
+      echo $group
+      if [ "${group:0:5}" = "Next:" ]; then
+          findgroup "${group:6}" $2
+      else
+          echo $group
+      fi
+  done
+
+}
+
+getmembers()
+{
+    curl -n "$1" -s -v -o - 2>&1 | sed -n -e 's/^.*Link: .*<\([^>]*\)>. rel="next".*$/Next: \1/p;/"login":/s/^.*"login":.*"\([^"]*\)".*$/\1/p' | while read url;
+  do
+          echo "  process:(${url:0:5})$url"
+            if [ "${url:0:5}" = "Next:" ]; then
+                    geturl ${url:6}
+            else
+                echo $url
+            fi
+  done
+}
+
+org="10gen"
+if [ $# -gt 1 ]; then
+    org=${1}
+    shift
+fi
+
+groupid=`findgroup https://api.github.com/orgs/$org/teams $1`
+echo "GroupID: $groupid"
+[ -n "$groupid" ] && getmembers https://api.github.com/teams/$groupid/members

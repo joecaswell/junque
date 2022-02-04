@@ -1,0 +1,71 @@
+#! /usr/bin/python
+from __future__ import print_function
+import json
+import readers
+import sys
+import copy
+
+def _msgr(*s):
+    print(' '.join(s), file=sys.stderr, end="")
+
+def _msg(*s):
+    print(' '.join(s), file=sys.stderr)
+
+if (len(sys.argv) < 2):
+    _msg("Input filename required")
+    sys.exit(1)
+
+if (len(sys.argv) > 3):
+    outf = open(sys.argv[3],"w")
+    _msg("Writing to " + sys.argv[3])
+else:
+    outf = sys.stdout
+    _msg("Writing to sys.stdout")
+
+def assign(doc, keys, value):
+    if len(keys)==1:
+       doc[keys[0]] = value
+    else:
+       if type(doc) == list:
+           index = int(keys[0])
+       else:
+           index = keys[0]
+       assign(doc[index],keys[1:],value)
+
+def fetch(doc, keys):
+    if len(keys)==1:
+       return doc[keys[0]]
+    else:
+       if type(doc) == list:
+           index = int(keys[0])
+       else:
+           index = keys[0]
+       return fetch(doc[index],keys[1:])
+
+outkeys = [ tuple(k.split(".")) for k in [ s for s in sys.argv[2].split(",")]]
+last = {}
+cur = {}
+
+_msg("chunk val epoch")
+outf.write("date,")
+outf.write(",".join([ ".".join(key) for key in outkeys]))
+for i, chunk in enumerate(readers.read_ftdc(sys.argv[1])):
+    _msgr("\x1b[2K\r %4d\r"%(i))
+    for idx in range(len(chunk[('start',)])):
+        if 0 == (idx % 100):
+            _msgr("\x1b[2K\r %4d %3d %d\r"%(i,idx, chunk[('start',)][idx]))
+        for key in chunk.keys():
+            assign(chunk.full_ref_doc, key, chunk[key][idx])
+        ret=""
+        if cur != {}:
+            outf.write(str(chunk.full_ref_doc['start']))
+        for key in outkeys:
+            cur[key] = fetch(chunk.full_ref_doc, key)
+            if last != {}:
+                outf.write(",")
+                outf.write(str(cur[key] - last[key]))
+        last = copy.copy(cur)
+        outf.write("\n")
+
+_msg("\nDone.")
+

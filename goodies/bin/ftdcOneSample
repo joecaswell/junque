@@ -1,0 +1,34 @@
+#!/bin/bash
+many=1;
+if [ $1 = "-h" ]; then
+    shift
+else 
+    test $# -gt 1
+    many=$?
+fi
+while [ $# -gt 0 ]; do
+  if [ $many -eq 0 ]; then 
+      echo -n "$1:"; 
+  fi;
+  bsondump --quiet $1 |\
+    grep -e '"type":1' -e '"type":{"$numberInt":"1"}' |\
+    (
+      byte=`dd bs=1 count=1 2>/dev/null`
+      if [ -n "$byte" ]; then
+         ( 
+          printf "\x1f\x8b\x08\x00\x00\x00\x00\x00"; 
+          head -n1 |\
+          sed -e 's/^.*$binary":"//;s/".*$//' |\
+          base64 -D |\
+          dd bs=1 skip=4 2>/dev/null
+         ) |\
+           gzip -dc |\
+           bsondump --quiet --pretty
+     else
+         if [ $many -eq 0 ]; then echo ""; fi
+     fi
+    )
+  shift
+done
+
+

@@ -1,0 +1,39 @@
+#!/bin/bash
+args=()
+while [[ $1 =~ ^- ]]; do
+    args[${#args[*]}]=$1
+    shift
+done
+code=$1
+shift
+gawk ${args[*]} 'function humantime(_fn_humantime_msec,which){
+if (which == "") { which="s" }
+_fn_humantime_ms = _fn_humantime_msec%1000;
+_fn_humantime_sec = int(_fn_humantime_msec/1000)%60;
+_fn_humantime_min = int(_fn_humantime_msec/60000)%60;
+_fn_humantime_hr = int(_fn_humantime_msec/3600000)%24;
+_fn_humantime_dy = int(_fn_humantime_msec/86400000);
+_fn_humanttime_rep="";
+if (which ~ /s/) {
+    _fn_humantime_rep = sprintf("%02d.%03d",_fn_humantime_sec,_fn_humantime_ms);
+}
+if (which ~ /m/ || _fn_humantime_min > 0 ||_fn_humantime_hr > 0 || _fn_humantime_dy > 0) {
+    _fn_humantime_rep = sprintf("%02d:%s",_fn_humantime_min,_fn_humantime_rep);
+}
+if (which ~ /h/ || _fn_humantime_hr > 0 || _fn_humantime_dy > 0) {
+    _fn_humantime_rep = sprintf("%02d:%s",_fn_humantime_hr,_fn_humantime_rep);
+}
+if (which ~ /d/ || _fn_humantime_dy > 0) {
+    _fn_humantime_rep = sprintf("%02d:%s",_fn_humantime_dy,_fn_humantime_rep);
+}
+return(_fn_humantime_rep);
+}
+function human(_fn_human_sz){if (_fn_human_sz==0){return "0 bytes";}; _fn_human_sufflen=split("bytes,KiB,MiB,GiB,TiB,PiB,EiB,ZiB,YiB",_fn_human_suff,",");_fn_human_i=int((log(_fn_human_sz)/log(2))/10);_fn_human_i=(_fn_human_i < _fn_human_sufflen ? _fn_human_i : (_fn_human_sufflen - 1)); _fn_human_sm=(int(_fn_human_sz*100/(2**(_fn_human_i*10)))/100) " " _fn_human_suff[_fn_human_i+1]; return(_fn_human_sm);}
+function min(a,b){if (length(a)==0) {return b}; if (length(b)==0) {return a}; if ((0+a)<(0+b)) {return a;} else {return b;}}
+function max(a,b){if (length(a)==0) {return b}; if (length(b)==0) {return a}; if ((0+a)>(0+b)) {return a;} else {return b;}}
+function dateToSec(dt){sub(/\.[0-9]{1,3}/,"",dt);sub(/[zZ]$/,"-0000",dt);cmd="date -jf %Y-%m-%dT%H:%M:%S%z " dt " +%s"; cmd | getline seconds; close(cmd); return seconds}
+function dateToMs(dt){sec=dateToSec(dt);sub("^[^.]*.","",dt); sub("[^0-9].*$","",dt);millis=sec dt;return millis}
+function msToDate(ms){sec=int(ms/1000);millis=ms-sec*1000;cmd="date -jur " sec " +%Y-%m-%dT%H:%M:%S%z | sed -e \"s/\\(:[0-9][0-9]\\)\\([^:]\\)/\\1." substr("000" millis,(1 + length(millis))) "\\2/\"";cmd|getline dt;close(cmd);return dt}
+function startTime(dt,ms){if(dt==""){dt=$1};if(ms==""){ms=0+$NF};return msToDateZone(dateToMs(dt)-ms,dt)}
+function msToDateZone(ms,dt){tzone=dt;zstr=sub(/^.*[+-]/,"",tzone);sub(/..$/,"",tzone);if(dt ~ /[+]....$/){tzone=0-tzone};sec=int(ms/1000);millis=ms-sec*1000;cmd="TZ="tzone" date -jr " sec " +%Y-%m-%dT%H:%M:%S%z | sed -e \"s/\\(:[0-9][0-9]\\)\\([^:]\\)/\\1." substr("000" millis,(1 + length(millis))) "\\2/\"";cmd|getline dt;close(cmd);return dt}
+function secToDate(sec){cmd="date -jur " sec " +%Y-%m-%dT%H:%M:%S%z";cmd|getline dt;close(cmd);return dt} '"$code" "$@"

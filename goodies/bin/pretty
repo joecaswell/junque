@@ -1,0 +1,12 @@
+#!/usr/bin/env python
+import json
+import fileinput
+
+for line in fileinput.input():
+    if (len(line) > 0):
+        try:
+            parsed = json.loads(line)
+        except ValueError:
+            skip = 1
+        else:
+            print json.dumps(parsed, indent=4, sort_keys=True)

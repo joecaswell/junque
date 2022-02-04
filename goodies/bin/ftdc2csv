@@ -1,0 +1,82 @@
+#! /usr/bin/python
+from __future__ import print_function
+import json
+import readers
+import sys
+import copy
+
+# usage 
+#    ftdc2csv <file/directory> <keylist> [outputfile]
+# or
+#    ftdc2csv <file/directory> listkeys
+
+def _msgr(*s):
+    print(' '.join(s), file=sys.stderr, end="")
+
+def _msg(*s):
+    print(' '.join(s), file=sys.stderr)
+
+if (len(sys.argv) < 3):
+    _msg("Input filename and field list required")
+    sys.exit(1)
+
+if (len(sys.argv) > 3):
+    outf = open(sys.argv[3],"w")
+    _msg("Writing to " + sys.argv[3])
+else:
+    outf = sys.stdout
+    _msg("Writing to sys.stdout")
+
+def assign(doc, keys, value):
+    if len(keys)==1:
+       doc[keys[0]] = value
+    else:
+       if type(doc) == list:
+           index = int(keys[0])
+       else:
+           index = keys[0]
+       assign(doc[index],keys[1:],value)
+
+def fetch(doc, keys):
+    if len(keys)==1:
+       return doc[keys[0]]
+    else:
+       if type(doc) == list:
+           index = int(keys[0])
+       else:
+           index = keys[0]
+       return fetch(doc[index],keys[1:])
+
+if (sys.argv[2] == "listkeys"):
+    listkeys = True
+    outkeys = []
+else:
+    listkeys = False
+    outkeys = [ tuple(k.split(".")) for k in [ s for s in sys.argv[2].split(",")]]
+_msg("chunk val epoch")
+outf.write("date,")
+outf.write(",".join([ ".".join(key) for key in outkeys]))
+outf.write("\n")
+for i, chunk in enumerate(readers.read_ftdc(sys.argv[1])):
+    _msgr("\x1b[2K\r %4d\r"%(i))
+    for idx in range(len(chunk[('start',)])):
+        if 0 == (idx % 100):
+            _msgr("\x1b[2K\r %4d %3d %d\r"%(i,idx, chunk[('start',)][idx]))
+        for key in chunk.keys():
+            if (listkeys):
+                print('.'.join(key))
+            assign(chunk.full_ref_doc, key, chunk[key][idx])
+        if (listkeys): break
+        outf.write(str(chunk.full_ref_doc['start']))
+        for key in outkeys:
+            outf.write(",")
+            try:
+              outf.write(str(fetch(chunk.full_ref_doc, key)))
+            except:
+              #ignore key errors
+              None
+        outf.write("\n")
+    if (listkeys): break
+
+_msg("\nDone.")
+

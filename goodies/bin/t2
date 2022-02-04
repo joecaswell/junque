@@ -1,0 +1,22 @@
+#!/bin/bash
+
+args=()
+
+curdir=`pwd`
+if [ "${curdir:0:15}" = "/Users/joe/tmp/" ]; 
+then
+        echo "Setting HOME to $curdir"
+        export HOME="$curdir"
+fi
+
+while [ $# -gt 0 ]; do
+    dir=$1
+    shift
+    if [ "${dir:0:1}" != "-" ]; then
+        [ "${dir:0:1}" = "/" ] || dir="$curdir/$dir"
+    fi
+    args=(${args[*]} "$dir")
+done
+
+echo "Command: open -n -a t2 --args ${args[@]}"
+open -n -a t2 --args "${args[@]}"

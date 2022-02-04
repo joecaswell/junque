@@ -1,0 +1,51 @@
+#!/usr/bin/env python
+import json
+import fileinput
+import sys
+
+keys = set()
+data = []
+def parseValue(jsondata, obj={}, delimiter="/", prefix=""):
+    localdelim = delimiter
+    if prefix == "":
+        localdelim = ""
+    if isinstance(jsondata, basestring):
+        obj[prefix] = jsondata
+        keys.add(prefix)
+    else:
+        try:
+            for f in jsondata:
+                try:
+                    parseValue(jsondata[f], obj, delimiter, prefix + localdelim + f)
+                except TypeError:
+                    ignore = 1
+        except TypeError:
+            obj[prefix] = jsondata
+            keys.add(prefix)
+    return obj
+
+
+for line in fileinput.input():
+    if (len(line) > 0):
+        try:
+            parsed = json.loads(line)
+        except ValueError:
+            skip = 1
+        else:
+            newobj = {}
+            parseValue(parsed,newobj)
+            data.append(newobj)
+
+keys = sorted(keys)
+
+for k in keys:
+    sys.stdout.write(k)
+    sys.stdout.write(",")
+    for d in data:
+        skip=1
+        try:
+          sys.stdout.write("%s" % d[k])
+        except:
+          skip=1
+        sys.stdout.write(",")
+    print ""

@@ -1,0 +1,198 @@
+#!/bin/bash
+awk 'function dateToSec(dt){
+ sub(/\.[0-9]{1,3}/,"",dt);
+ sub(/Z$/,"-0000",dt);
+ cmd="date -jf %Y-%m-%dT%H:%M:%S%z " dt " +%s";
+ cmd | getline seconds; 
+ close cmd; 
+ return seconds
+}
+function dateToMs(dt){
+ sec=dateToSec(dt);
+ sub("^[^\.]*.","",dt);
+ sub("[^0-9].*$","",dt);
+ millis=sec dt;
+ return millis
+}
+function getConnNum(str) {
+ s=str;
+ sub("conn","",s);
+ sub("#","",s);
+ gsub("[][]","",s); 
+ return s
+}
+BEGIN {
+ generationserial=64;
+ generation=" ";
+}
+/MongoDB starting|SERVER RESTARTED/{
+ # append a prefix to connection numbers after a restart
+ generationserial+=1;
+ generation=sprintf("(%c)",generationserial);
+}
+/end connection/{
+ raw=getConnNum($4)
+ if (raw != "listener") {
+  conn=generation raw
+  addr=$7;
+  portnum=$7;
+  sub(":.*$","",addr);
+  sub(".*:","",portnum);
+  ip[conn]=addr;
+  port[conn]=portnum;
+  stop[conn]=$1
+  cnum[conn]=raw
+ }
+}
+/connection accepted/{
+ raw=getConnNum($9);
+ conn=generation raw
+ last=conn
+ addr=$8;
+ portnum=$8;
+ sub(":.*$","",addr);
+ sub(".*:","",portnum);
+ ip[conn]=addr;
+ port[conn]=portnum;
+ start[conn]=$1;
+ cnum[conn]=raw
+}
+/connection refused because too many open connections/{
+ sub(/^.*connection /,"connection",$0)
+ drivername[last]=$0
+}
+/Successfully authenticated/{
+ raw=getConnNum($4)
+ conn=generation raw
+ user[conn]=$9 "@" $11; 
+ if (ip[conn] == "" ) { 
+     if ($13 == "client"){
+          addr=$14;
+          portnum=$14;
+          sub(":.*$","",addr);
+          sub(".*:","",portnum);
+          ip[conn]=addr;
+          port[conn]=portnum;
+     } else {
+         ip[conn]="."; 
+     }
+ }
+ cnum[conn]=raw
+}
+/authentication failed/{
+ raw=getConnNum($4)
+ conn=generation raw
+ user[conn]=user[conn] " FAIL(" $10 "@" $12 ")"
+ if (ip[conn] == "" ) { 
+     ip[conn]=$14;
+ }
+}
+/received client metadata|isMaster { .*client:/{
+ raw=getConnNum($4)
+ conn=generation raw
+ if (ip[conn] == "." || ip[conn] == "") {
+     if ($9 ~ /[0-9]:[0-9]/) {
+        addr=$9;
+     } else {
+        addr=$0
+        sub(/^.*client: "/,"",addr)
+        sub(/ .*$/,"",addr)
+     }
+     portnum=addr;
+     sub(":.*$","",addr);
+     sub(".*:","",portnum);
+     ip[conn]=addr
+     port[conn]=portnum
+ }
+ driver=$0;
+ osname=$0;
+ osver=$0;
+ sub("^.*driver:[^}]*name: \"","",driver);
+ sub("\".*$","",driver);
+ if (osver~/os:[^}]*version:/) {
+     sub("^.*os:[^}]*version: \"","",osver);
+     sub("\".*$","",osver);
+     osversion[conn]=osver;
+ } else {
+     osversion[conn]=osver
+ };
+ if (osname~/os:[^}]*name:/){
+     sub("^.*os:[^}]*name: \"","",osname);
+     sub("\".*$","",osname);
+     os[conn]=osname;
+ } else {
+   if (osname~/os:[^}]*type:/){
+       sub("^.*os:[^}]*type: \"","",osname);
+       sub("\".*$","",osname);
+       os[conn]=osname;
+   } else {
+       sub(".*os:","",osname)
+       sub("}.*$","}",osname)
+       os[conn]=osname;
+   }
+ }
+ drivername[conn]=driver
+ cnum[conn]=raw
+}
+/received client metadata.*platform:|ismaster.*platform:/{
+ raw=getConnNum($4)
+ conn=generation raw
+ platformname=$0;
+ if (ip[conn] == "." || ip[conn] == "") {
+     if ($9 ~ /[0-9]:[0-9]/) {
+        addr=$9;
+     } else {
+        addr=$0
+        sub(/^.*client: "/,"",addr)
+        sub(/ .*$/,"",addr)
+     }
+     portnum=addr;
+     sub(":.*$","",addr);
+     sub(".*:","",portnum);
+     ip[conn]=addr
+     port[conn]=portnum
+ }
+ sub("^.*platform: \"","",platformname);
+ sub("\".*$","",platformname);
+ platform[conn]=platformname;
+ cnum[conn]=raw
+} 
+/\[conn[0-9].*Except/{
+ raw=getConnNum($4)
+ conn=generation raw
+ if (ip[conn] == "" ) { ip[conn]="."; }
+ sub("^.*conn[0-9]*\] ","",$0)
+ note[conn] = note[conn] $0 " "
+ cnum[conn]=raw
+ }
+/ [EFW] NETWORK *\[conn[0-9]/{
+ raw=getConnNum($4)
+ conn=generation raw
+ if (ip[conn] == "") { ip[conn]="."; }
+ sub("^.*conn[0-9]*\] ","",$0)
+ note[conn] = note[conn] $0 " "
+ cnum[conn] = raw
+}
+END{
+ print "Connection,Gen,IP,Port,Connect,Disconnect,Duration,Driver,OS,OS Version,Platform,User,Note"; 
+ for(i in ip){
+   gsub(",","",ip[i]);
+   gsub(",","",ip[i]);
+   gsub(",","",port[i]);
+   gsub(",","",start[i]);
+   gsub(",","",stop[i]);
+   gsub(",","",drivername[i]);
+   gsub(",","",osversion[i]);
+   gsub(",","",platform[i]);
+   gsub(",","",user[i]);
+   gsub(",","",note[i]);
+   duration="";
+   if (stop[i] != "" && start[i] != "") {
+    stopms=dateToMs(stop[i]);
+    startms=dateToMs(start[i]);
+    duration = stopms - startms;
+   }
+   gen=i
+   sub(cnum[i],"",gen)
+   print cnum[i] "," gen "," ip[i] "," port[i] "," start[i] "," stop[i] "," duration "," drivername[i] "," os[i] "," osversion[i] "," platform[i] "," user[i] "," note[i]}}' "$@"
+

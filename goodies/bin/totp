@@ -1,0 +1,2 @@
+#!/bin/bash
+oathtool --totp -b $(<$HOME/.totp/$1)

@@ -1,0 +1,28 @@
+#!/usr/bin/env python 
+
+#Package           Version   
+#----------------- ----------
+#hexdump           3.3       
+#python-evtx       0.6.1     
+#xmltodict         0.12.0    
+
+import Evtx.Evtx as evtx
+import Evtx.Views as e_views
+import xmltodict
+import json
+import sys
+
+if len(sys.argv) != 3:
+    print("Usage: %s <infile> <outfile>\n" % __file__)
+    raise SystemExit
+
+if sys.argv[2] == "-":
+    of = sys.stdout
+else:
+    of = open(sys.argv[2],"w+")
+
+with evtx.Evtx(sys.argv[1]) as log:
+    for r in log.records():
+        of.write("%s\n" % json.dumps(xmltodict.parse(r.xml())))
+
+of.close()

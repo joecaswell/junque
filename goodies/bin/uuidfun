@@ -1,0 +1,18 @@
+#!/bin/bash
+function to_int64 {
+    hex=`echo $1 | tr -cd '[0-9a-fA-F]' | tr "a-f" "A-F"`
+    int1=$(echo "ibase=16;`echo $hex | cut -c1-16`" | bc)
+    int2=$(echo "ibase=16;`echo $hex | cut -c17-32`" | bc)
+    printf "%s\n%s\n" $int1 $int2
+}
+
+function to_uuid {
+    hex1=$(echo "obase=16;$1" | bc)
+    hex2=$(echo "obase=16;$1" | bc)
+    u1=$(echo $hex1 | cut -c1-8)
+    u2=$(echo $hex1 | cut -c9-12)
+    u3=$(echo $hex1 | cut -c13-16)
+    u4=$(echo $hex2 | cut -c1-4)
+    u5=$(echo $hex2 | cut -c5-16)
+    echo "${u1}-${u2}-${u3}-${u4}-${u5}"
+}
