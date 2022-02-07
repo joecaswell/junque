@@ -1,0 +1,808 @@
+ss opcounters query:
+  Number of queries/s.
+  Incremented before command is executed.
+
+ss opcounters insert:
+  Number of inserts/s.
+  Incremented before command is executed.
+
+ss opcounters update:
+  Number of updates/s.
+  Incremented before command is executed.
+
+ss opcounters delete:
+  Number of deletes/s.
+  Incremented before command is executed.
+
+ss opcounters command:
+  Number of commands/s.
+  Incremented before command is executed.
+
+ss opcounters getmore:
+  Number of getmores/s.
+  Incremented before command is executed.
+
+ss opcountersRepl query:
+  Expected to always be zero.
+
+ss opcountersRepl insert:
+  Number of replicated inserts/s.
+  Incremented before command is executed.
+
+ss opcountersRepl update:
+  Number of replicated updates/s.
+  Incremented before command is executed.
+
+ss opcountersRepl delete:
+  Number of replicated deletes/s.
+  Incremented before command is executed.
+
+ss opcountersRepl command:
+  Expected to always be zero.
+
+ss opcountersRepl getmore:
+  Expected to always be zero.
+
+ss ops reads:
+  Number of read operations/s.
+
+ss ops writes:
+  Number of write operations/s.
+
+ss ops commands:
+  Number of commands/s.
+
+ss ops transactions:
+  Number of multi-statement transactions/s.
+
+ss average latency reads:
+  Average latency of read ops.
+  Idle systems may report higher than expected latencies because there may be
+  high-latency low-rate background operations.
+
+ss average latency writes:
+  Average latency of write ops.
+  Idle systems may report higher than expected latencies because there may be
+  high-latency low-rate background operations.
+
+ss average latency commands:
+  Average latency of command ops.
+  Idle systems may report higher than expected latencies  because there may be
+  high-latency low-rate background operations.
+
+ss average latency transactions:
+  Average latency of transactions from first transaction statement to commit or abort.
+
+#"ss ss global: active readers":
+#  Number of readers with a read ticket that are not waiting for other locks.[b][c][d][e]
+#  Threads acquire tickets before taking non-global locks after 3.2.3.
+
+#"ss ss global: active writers":
+#  Number of writers with a write ticket that are not waiting for other locks.
+#  Threads acquire tickets before taking non-global locks after 3.2.3.
+
+"ss ss global: queued readers":
+  Number of readers waiting for a ticket or a lock.
+
+"ss ss global: queued writers":
+  Number of writers waiting for a ticket or a lock.
+
+ss asserts msg:
+  Cumulative number of failing masserts.
+  An massert indicates a non-fatal server error.
+  Logs a message.
+  Can roll over.
+
+ss asserts regular:
+  Cumulative number of failing verify calls. Deprecated in favour of massert.
+
+ss asserts rollovers:
+  Incremented when any assert counter overflows by reaching 2^30 (~1M).
+  A rollover causes the other asserts (msg, regular, user, or warning) counters to be reset to 0.
+
+ss asserts user:
+  Cumulative number of failing uasserts.
+  A uassert indicates a client error, not a server error.
+  Can roll over.
+
+ss asserts warning:
+  Cumulative number of failing wasserts
+  A wassert is a warning assertion.
+  Can roll over.
+
+ss connections available:
+  Configured maximum connections minus current number of connections.
+
+ss connections current:
+  Number of incoming connections currently open (in TCP established state).
+
+ss connections active:
+  Number of connections that have received a request and are processing it.
+
+ss connections created:
+  The rate of incoming connections accepted per second
+  Can be used in conjunction with "connections current" to show the connection churn.
+
+ss connections net increase:
+  Net increase in established connections per second.
+  Negative values are shown as 0; see "connections net decrease".
+
+ss connections net decrease:
+  Net decrease in established connections per second.
+  Negative values are not shown; see "connections net increase".
+
+ss logicalSessionRecordCache activeSessionsCount:
+  Number of active logical sessions (both cached and non-cached).
+
+ss logicalSessionRecordCache lastSessionsCollectionJobDurationMillis:
+  The time it took to persist sessions from memory to config.system.sessions
+  in the last periodic task run.
+  A value of 0 means logical sessions hasn’t been initialized.
+
+ss logicalSessionRecordCache lastSessionsCollectionJobEntriesEnded:
+  Number of logical sessions that are being explicitly ended.
+  A value of 0 means logical sessions hasn’t been initialized.
+
+ss logicalSessionRecordCache lastSessionsCollectionJobEntriesRefreshed:
+  Number of sessions persisted from memory to config.system.sessions
+  in the last periodic task run.
+  A value of 0 means logical sessions hasn’t been initialized.
+
+ss logicalSessionRecordCache lastTransactionReaperJobDurationMillis:
+  The time it took to purge sessions in the last run of the periodic task.
+  A value of 0 means logical sessions hasn’t been initialized.
+
+
+ss uptime:
+  Elapsed time since the process started.
+  Resets to 0 following a restart.
+
+ss metrics document returned:
+  Number of documents/s returned by queries.
+  An estimate of documents returned per query can be obtained by comparing with query/s.
+
+ss documents returned per query:
+  Documents returned per second divided by queries/s.
+
+ss metrics queryExecutor scanned:
+  Number of index keys scanned per second during query execution.
+  A high ratio of "scannedObjects" to "scanned" indicates poorly indexed or unindexed queries.
+
+ss metrics queryExecutor scannedObjects:
+  Number of documents scanned per second during query execution.
+  A high ratio of "scannedObjects" to "scanned" indicates poorly indexed or unindexed queries.
+
+ss average wtime:
+  Average time waiting for write concern.
+
+ss metrics getLastError wtimeouts:
+
+ss metrics operation scanAndOrder:
+  Number of queries/s performing a blocking  sort.
+
+ss metrics operation writeConflicts:
+  The number of write conflicts per second.
+  A write conflict occurs when WT detects concurrent writes to the same document.
+  A conflicting write is retried until it completes without conflict.
+  Small values (e.g 10 conflict/s out of 100 k writes/s) are not significant.
+
+ss serviceExecutor threads running:
+  Number of threads available to perform database work.
+  With the default (synchronous) service executor, this number should be
+  approximately equal to "ss connections current".
+
+rs member _id {1} state:
+  "Replica set state: 0:STARTUP, 1:PRIMARY, 2:SECONDARY, 3:RECOVERY,
+   5:STARTUP2, 6:UNKNOWN, 7:ARBITER, 8:DOWN, 9:ROLLBACK, 10:REMOVED."
+
+ss shardingStatistics catalogCache numCollectionEntries:
+  Number of collections currently sharded.
+
+ss shardingStatistics catalogCache numDatabaseEntries:
+  Number of databases where sharding has been enabled.
+
+ss shardingStatistics catalogCache countStaleConfigErrors:
+  Cumulative count of stale config errors received.
+  A stale config event triggers a metadata refresh from the config server.
+
+ss shardingStatistics countDonorMoveChunkStarted:
+
+ss shardingStatistics totalDonorChunkCloneTimeMillis:
+
+ss shardingStatistics totalCriticalSectionTimeMillis:
+  Cumulative time spent in the critical section in the donor shard during a chunk migration.
+  The critical section holds the collection exclusive lock.
+
+ss network bytesIn:
+  Bytes/s of uncompressed data received over the network by this mongod instance.
+
+ss network bytesOut:
+  Bytes/s of uncompressed data sent over the network by this mongod instance.
+
+ss network physicalBytesIn:
+  Bytes/s of possibly compressed data received over the network by this mongod instance.
+
+ss network physicalBytesOut:
+  Bytes/s of possibly compressed data sent over the network by this mongod instance.
+
+ss mem virtual:
+  Amount of virtual address space in use by the application.
+  This may be much larger than the amount of actual physical memory in use by the application;
+  "mem resident" is more important than this metric.
+
+ss mem resident:
+  Amount of actual physical memory in use by the application.
+  Includes both resident tcmalloc heap and resident stacks.
+  This is more important than virtual size as a measure of memory usage.
+
+ss tcmalloc generic heap_size:
+  Virtual memory under control of the allocator.
+  Grows or shrinks as tcmalloc requests or releases memory from the kernel.
+  Should be equal to pageheap_unmapped_bytes + pageheap_committed_bytes.
+
+ss tcmalloc generic current_allocated_bytes:
+  Memory explicitly allocated by the process.
+  Includes both memory allocated by WT for cache and memory allocated outside of WT cache.
+
+ss tcmalloc derived allocated minus wt cache:
+  The amount of allocated memory used outside the WT cache,
+  e.g. memory used by in-memory sorts, query processing, and so on.
+  May be negative or otherwise slightly inaccurate because
+  WT memory usage statistics only approximately account for internal fragmentation.
+
+#ss tcmalloc tcmalloc pageheap_unmapped_bytes:
+#  Memory released to the kernel for reuse. Does not count as resident.
+
+ss tcmalloc tcmalloc pageheap_free_bytes:
+  Unused memory available for allocation requests.
+  Counts as resident unless swapped out by the kernel.
+  A large value may indicate a large amount of memory allocated
+  and then freed, or may indicate fragmentation.
+
+ss tcmalloc tcmalloc central_cache_free_bytes:
+  See memory view for more information.
+
+ss tcmalloc tcmalloc thread_cache_free_bytes:
+  See memory view for more information.
+
+ss tcmalloc tcmalloc transfer_cache_free_bytes:
+  See memory view for more information.
+
+ss tcmalloc tcmalloc current_total_thread_cache_bytes:
+  See memory view for more information.
+
+ss thread cache per connection:
+  Approximate average thread cache size per connection (roughly, number of threads).
+  Equal to the current_total_thread_cache_bytes divided by the number of connections.
+
+ss tcmalloc tcmalloc max_total_thread_cache_bytes:
+  Bound on the total amount of bytes allocated to thread caches.
+  Not strict, so it is possible for the cache to go over this bound.
+  Defaults to 1GB.
+
+ss tcmalloc tcmalloc aggressive_memory_decommit:
+  If enabled (1), tcmalloc eagerly returns memory to the kernel.
+  This may avoid problems with excessive free memory due to fragmentation.
+  Default is disabled (0) due to performance impact.
+
+ss tcmalloc tcmalloc pageheap_committed_bytes:
+  Portion of pageheap that has not been returned to the kernel.
+
+ss tcmalloc tcmalloc spinlock_total_delay_ns:
+  Cumulative time spent by threads waiting on a tcmalloc spinlock
+  to service a memory allocation or deallocation.
+  Scaled for display to represent average number of threads waiting.
+  High values indicate an allocator bottleneck
+
+ss extra_info page_faults:
+  Number of page faults/s.
+  Large values result from overcommitment of memory,
+  either due to mongod or due to another process running on the same machine.
+  Windows distinguishes "hard" page faults involving disk I/O from "soft" page faults
+  that only require moving pages in memory; this metric includes both.
+
+system memory cached:
+  Memory used by the Linux disk cache. This accelerates file accesses.
+
+system memory dirty:
+  Represents file changes that have not yet been written to disk.
+
+system memory free:
+  Free memory on the system; may be used for both allocated memory and disk cache.
+  Low values are expected and not of great concern unless the "cached" value is also low.
+
+system memory anon total:
+  Amount of anonymous memory in use systemwide.
+  Anonymous memory is commonly used for stack and heap allocation.
+  A value significantly larger than mongod memory usage indicates other processes
+  consuming significant memory.
+
+system TcpExt ListenOverflows:
+  A connection has been established at the TCP protocol level (3-way handshake),
+  but there was no room on the queue of connections waiting to be accepted by mongod.
+  Indicates connections are arriving faster than mongod can accept them.
+  Client will time out and retry with exponential backoff,
+  which can result in very high client-side latencies.
+
+system TcpExt ListenDrops:
+  We couldn't accept a connection because  we had no route to the destination,
+  we failed to allocate a socket, or we failed to allocate a new local port bind bucket.
+  This counter also includes ListenOverflows.
+
+system Ip OutNoRoutes:
+  The number of IP datagrams/s that have been discarded because
+  no route could be found to transmit them to their destination.
+
+system TcpExt OfoPruned:
+  The number of out-of-order packets/s that have been discarded because
+  a socket is using too much memory.
+
+system TcpExt RcvPruned:
+  The number of received packets/s that have been discarded because
+  a socket is using too much memory.
+
+system Tcp RetransSegs:
+  The total number of TCP segments/s that have retransmitted data.
+  This indicates packet loss, for example due to network congestion or other network issues
+
+system TcpExt DelayedACKLost:
+  We sent a delayed and duplicated ACK because the remote peer retransmitted a packet,
+  thinking that it didn't get to us.
+  Retransmitted packets indicate possible network issues.
+
+# Tips for metrics generated by matching a pattern, such as disk
+# metrics, are keyed by the pattern name string, not by the final
+# displayed metric name, since the latter is not known until the
+# pattern is used.  The pattern name strings contain substitution
+# strings like "{1}" which are substituted by a string taken from the
+# metric when the pattern is used to match the metric.
+
+disk {1} average queue length:
+  Average number of i/o operations in progress or queued up.
+
+disk {1} average utilization:
+  Percentage of time that an i/o operation is in progress.
+  This is just the average queue length truncated at 1 times 100.
+  If utilization is high or 100% but rate and volume of reads and writes is low or 0,
+  then there is likely an issue with the disk.
+
+disk {1} bytes read:
+  Bytes read per second.
+
+disk {1} bytes written:
+  Bytes written per second.
+
+disk {1} read requests issued:
+  Number of read requests issued per second.
+
+disk {1} write requests issued:
+  Number of write requests issued per second.
+
+disk {1} average read wait time:
+  Average amount of time for read requests to complete.
+  Includes time spent queued.
+
+disk {1} average write wait time:
+  Average amount of time for write requests to complete.
+  Includes time spent queued.
+
+disk {1} average read request size:
+  Average size in bytes of each read request.
+
+disk {1} average write request size:
+  Average size in bytes of each write request.
+
+ss locks Global acquireCount r:
+  Number of times per second a global r (MODE_IS) lock was acquired.
+  Includes both global locks and parallel batch writer mode (PWBM) lock.
+  PWBM lock is used in versions prior to 4.0 to prevent data access
+  on secondaries while a batch of operations is being applied.
+
+ss locks Global acquireCount w:
+  Number of times per second a global w (MODE_IX) lock was acquired.
+  Includes both global locks and parallel batch writer mode (PWBM) lock.
+  PWBM lock is used in versions prior to 4.0 to prevent data access
+  on secondaries while a batch of operations is being applied.
+
+ss locks Global acquireCount R:
+  Number of times per second a global r (MODE_S) lock was acquired.
+  Includes both global locks and parallel batch writer mode (PWBM) lock.
+  PWBM lock is used in versions prior to 4.0 to prevent data access
+  on secondaries while a batch of operations is being applied.
+
+ss locks Global acquireCount W:
+  Number of times per second a global w (MODE_X) lock was acquired.
+  Includes both global locks and parallel batch writer mode (PWBM) lock.
+  PWBM lock is used in versions prior to 4.0 to prevent data access
+  on secondaries while a batch of operations is being applied.
+
+ss locks Database acquireCount r:
+  Number of times per second a database r (MODE_IS) lock was acquired.
+
+ss locks Database acquireCount w:
+  Number of times per second a database w (MODE_IX) lock was acquired.
+
+ss locks Database acquireCount R:
+  Number of times per second a database r (MODE_S) lock was acquired.
+
+ss locks Database acquireCount W:
+  Number of times per second a database w (MODE_X) lock was acquired.
+
+ss locks Collection acquireCount r:
+  Number of times per second a collection r (MODE_IS) lock was acquired.
+
+ss locks Collection acquireCount w:
+  Number of times per second a collection w (MODE_IX) lock was acquired.
+
+ss locks Collection acquireCount R:
+  Number of times per second a collection r (MODE_S) lock was acquired.
+
+ss locks Collection acquireCount W:
+  Number of times per second a collection w (MODE_X) lock was acquired.
+
+ss locks Global acquireWaitCount r:
+  Number of times per second a global r (MODE_IS) lock was acquired but the thread had to wait.
+  Includes both global locks and parallel batch writer mode (PWBM) lock.
+  PWBM lock is used in versions prior to 4.0 to prevent data access
+  on secondaries while a batch of operations is being applied.
+
+ss locks Global acquireWaitCount w:
+  Number of times per second a global w (MODE_IX) lock was acquired but the thread had to wait.
+  Includes both global locks and parallel batch writer mode (PWBM) lock.
+  PWBM lock is used in versions prior to 4.0 to prevent data access
+  on secondaries while a batch of operations is being applied.
+
+ss locks Global acquireWaitCount R:
+  Number of times per second a global r (MODE_S) lock was acquired but the thread had to wait.
+  Includes both global locks and parallel batch writer mode (PWBM) lock.
+  PWBM lock is used in versions prior to 4.0 to prevent data access
+  on secondaries while a batch of operations is being applied.
+
+ss locks Global acquireWaitCount W:
+  Number of times per second a global w (MODE_X) lock was acquired but the thread had to wait.
+  Includes both global locks and parallel batch writer mode (PWBM) lock.
+  PWBM lock is used in versions prior to 4.0 to prevent data access
+  on secondaries while a batch of operations is being applied.
+
+ss locks Database acquireWaitCount r:
+  Number of times per second a database r (MODE_IS) lock was acquired but the thread had to wait.
+
+ss locks Database acquireWaitCount w:
+  Number of times per second a database w (MODE_IX) lock was acquired but the thread had to wait.
+
+ss locks Database acquireWaitCount R:
+  Number of times per second a database r (MODE_S) lock was acquired but the thread had to wait.
+
+ss locks Database acquireWaitCount W:
+  Number of times per second a database w (MODE_X) lock was acquired but the thread had to wait.
+
+ss locks Collection acquireWaitCount r:
+  Number of times per second a collection r (MODE_IS) lock was acquired but the thread had to wait.
+
+ss locks Collection acquireWaitCount w:
+  Number of times per second a collection w (MODE_IX) lock was acquired but the thread had to wait.
+
+ss locks Collection acquireWaitCount R:
+  Number of times per second a collection r (MODE_S) lock was acquired but the thread had to wait.
+
+ss locks Collection acquireWaitCount W:
+  Number of times per second a collection w (MODE_X) lock was acquired but the thread had to wait.
+
+ss locks Global timeAcquiringMicros r:
+  Cumulative time spent by threads waiting for a global r (MODE_IS) lock.
+  Scaled for display to represent the average number of threads waiting.
+  Includes both global locks and parallel batch writer mode (PWBM) lock.
+  PWBM lock is used in versions prior to 4.0 to prevent data access
+  on secondaries while a batch of operations is being applied.
+
+ss locks Global timeAcquiringMicros w:
+  Cumulative time spent by threads waiting for a global w (MODE_IX) lock.
+  Scaled for display to represent the average number of threads waiting.
+  Includes both global locks and parallel batch writer mode (PWBM) lock.
+  PWBM lock is used in versions prior to 4.0 to prevent data access
+  on secondaries while a batch of operations is being applied.
+
+ss locks Global timeAcquiringMicros R:
+  Cumulative time spent by threads waiting for a global r (MODE_S) lock.
+  Scaled for display to represent the average number of threads waiting.
+  Includes both global locks and parallel batch writer mode (PWBM) lock.
+  PWBM lock is used in versions prior to 4.0 to prevent data access
+  on secondaries while a batch of operations is being applied.
+
+ss locks Global timeAcquiringMicros W:
+  Cumulative time spent by threads waiting for a global w (MODE_X) lock.
+  Scaled for display to represent the average number of threads waiting.
+  Includes both global locks and parallel batch writer mode (PWBM) lock.
+  PWBM lock is used in versions prior to 4.0 to prevent data access
+  on secondaries while a batch of operations is being applied.
+
+ss locks Database timeAcquiringMicros r:
+  Cumulative time spent by threads waiting for a database r (MODE_IS) lock.
+  Scaled for display to represent the average number of threads waiting.
+
+ss locks Database timeAcquiringMicros w:
+  Cumulative time spent by threads waiting for a database w (MODE_IX) lock.
+  Scaled for display to represent the average number of threads waiting.
+
+ss locks Database timeAcquiringMicros R:
+  Cumulative time spent by threads waiting for a database r (MODE_S) lock.
+  Scaled for display to represent the average number of threads waiting.
+
+ss locks Database timeAcquiringMicros W:
+  Cumulative time spent by threads waiting for a database w (MODE_X) lock.
+  Scaled for display to represent the average number of threads waiting.
+
+ss locks Collection timeAcquiringMicros r:
+  Cumulative time spent by threads waiting for a collection r (MODE_IS) lock.
+  Scaled for display to represent the average number of threads waiting.
+
+ss locks Collection timeAcquiringMicros w:
+  Cumulative time spent by threads waiting for a collection w (MODE_IX) lock.
+  Scaled for display to represent the average number of threads waiting.
+
+ss locks Collection timeAcquiringMicros R:
+  Cumulative time spent by threads waiting for a collection r (MODE_S) lock.
+  Scaled for display to represent the average number of threads waiting.
+
+ss locks Collection timeAcquiringMicros W:
+  Cumulative time spent by threads waiting for a collection w (MODE_X) lock.
+  Scaled for display to represent the average number of threads waiting.
+
+ss locks Mutex acquireCount r:
+  "Number of times the lock called Mutex has been acquired.
+  Note: this is not a real mutex."
+
+ss metrics commands appendOplogNote total:
+  Issued by the backup agent to provide an optime marker for snapshots.
+
+ss metrics commands applyOps total:
+  Internal command to apply oplog entries.
+  Used by backup on head databases, mongorestore, mongomirror.
+
+ss metrics commands copydb total:
+  Takes a global write lock.
+
+ss metrics commands eval total:
+  Runs javascript on the server. Takes a global write lock.
+
+ss metrics commands fsync total:
+  Flushes pending writes to stable storage and locks the database to allow backups.
+  Takes a global write lock.
+
+ss metrics commands mapReduce total:
+  Post-processing takes a global write lock.
+
+ss metrics commands renameCollection total:
+  Takes a global write lock.
+
+ss metrics commands repairDatabase total:
+  Takes a global write lock.
+
+ss metrics commands replSetReconfig total:
+  Takes a global write lock.
+
+ss metrics commands replSetStepDown total:
+  Initiates a replica set stepdown.
+  Takes a global write lock at the start and finish.
+
+ss metrics repl buffer count:
+  Number of operations stored in the local replication buffer waiting to be applied.
+
+ss metrics repl buffer maxSizeBytes:
+  Maximum size of the local replication buffer.
+
+ss metrics repl buffer sizeBytes:
+  Number of bytes stored in the local replication buffer.
+  Large values indicate that the secondary cannot keep up with the primary.
+  Small values during periods of lag indicate a problem fetching oplog data
+  from the sync source.
+
+ss wt block-manager bytes read:
+  Bytes read by WT.
+  May be read from the Linux disk cache or from the physical disk.
+  Compressed if compression is enabled.
+
+ss wt block-manager bytes written:
+  Non-journal bytes written by WT.
+  Will be stored in the Linux disk cache and may not be written to disk immediately.
+  Compressed if compression is enabled.
+  You can estimate the compression ratio by comparing "bytes written from cache",
+  which is uncompressed, with this metric.
+
+ss wt cache application threads page read from disk to cache count:
+  Number of WT pages per second needed by the application but not found in the WT cache.
+  May be read from the Linux disk cache or from the physical disk.
+  A high rate indicates poor cache coverage.
+  The "page read from disk to cache time" metric gives a better indication of application impact.
+
+ss wt cache bytes currently in the cache:
+  WT cache utilization in bytes.
+
+ss wt cache fill ratio:
+  The percentage of utilization of the WT cache.
+  By default, between 80% and 95%, eviction threads evict cache content.
+  Above 95%, application threads are also recruited for eviction.
+
+ss wt cache bytes not belonging to page images in the cache:
+
+ss wt cache bytes read into cache:
+  Bytes/s read into the WT cache.
+  May be read from the Linux disk cache or from the physical disk.
+  These are uncompressed bytes.
+
+ss wt cache bytes written from cache:
+  Bytes/s written from the WT cache.
+  Will be stored in the Linux disk cache and may not be written to disk immediately.
+  These are uncompressed bytes.
+  You can estimate the compression ratio by comparing "block-manager bytes written",
+  which is compressed, with this metric.
+
+ss wt cache eviction currently operating in aggressive mode:
+  If true, eviction will try to evict everything in the eviction queue
+  instead of the oldest 1/3 of pages in the queue.
+
+ss wt cache eviction empty score:
+  Indicates how often the eviction server, which queues the pages to be evicted,
+  found the queue empty.
+  If the queue is found empty, pages have been evicted faster than they are being queued.
+  If eviction is slow, this indicates that the eviction server may be the bottleneck.
+
+ss wt cache eviction state:
+  See src/third_party/wiredtiger/src/include/cache.h, WT_CACHE_EVICT_*.
+
+ss wt cache maximum bytes configured:
+  Configured maximum size of WT cache.
+
+ss wt cache maximum page size at eviction:
+  The size of the largest page during page eviction.
+  This value is reset when a checkpoint is completed.
+  The default target maximum page size is 10MB.
+  A page that is found to be larger than the maximum page size is queued for urgent eviction
+  (see pages queued for urgent eviction metric).
+
+ss wt cache modified pages evicted by application threads:
+  The rate of modified pages/s that were evicted by application threads
+  instead of WT eviction worker threads.
+  Application threads perform evictions when cache pressure is high,
+  and this impacts application performance.
+  Evicting a modified page is more expensive than evicting an unmodified page
+  as it involves reconciliation and writing to disk.
+
+ss wt cache modified pages evicted:
+  The rate of modified pages/s that were evicted by eviction threads and application threads.
+  Evicting a modified page is more expensive than evicting an unmodified page
+  as it involves reconciliation and writing to disk.
+
+ss wt cache pages evicted because they exceeded the in-memory maximum count:
+  Pages evicted once larger than 80% of "memory_page_max" (default is 10 MB).
+  See "ss wt cache pages queued for urgent eviction" for more details.
+
+ss wt cache pages evicted because they had chains of deleted items count:
+  Pages evicted that contained deleted key/value pairs.
+  Deleted key/value pairs can cause inefficient evictions so priority evicted.
+
+ss wt cache pages queued for eviction:
+  Number of pages considered possibly evictable when walking tree for candidates.
+  Normally only a fraction of the pages queued will actually be evicted.
+  Not a count of pages that are actually evicted.
+
+ss wt cache pages queued for urgent eviction during walk:
+  Pages queued for urgent eviction by the eviction server.
+  See "ss wt cache pages queued for urgent eviction" for more details.
+
+ss wt cache pages queued for urgent eviction:
+  There are few reasons why pages might be quued for urgent eviction.
+  For example, pages larger than a max size (default is 10 MB)
+  are given priority in eviction by placing them on the urgent eviction queue
+  because they consume a disproportionate amount of cache
+  and so can negatively impact cache behaviors.
+
+ss wt cache pages read into cache skipping older cache overflow entries:
+  Pages read into cache from the data file instead of cache overflow.
+  WT writes a version of content for each key to the data file and other required versions to
+  the cache overflow file. If content being requested is in data file, can avoid also reading
+  cache overflow.
+
+ss wt cache pages read into cache with skipped cache overflow entries needed later:
+  Pages read into cache without cache overflow but subsequent access required it.
+  See "ss wt cache pages read into cache skipping older cache overflow entries" for more details.
+
+ss wt cache pages seen by eviction walk:
+  Number of pages walked for eviction that are still in memory.
+  Difference between this and "ss wt cache pages walked for eviction"
+  are pages that have already been evicted.
+
+ss wt cache tracked dirty bytes in the cache:
+  Number of dirty bytes in the WT cache.
+  This number is reported as a percentage of total cache size by "cache dirty fill ratio"
+
+ss wt cache dirty fill ratio:
+  Percentage of total WT cache size that is dirty.
+  Eviction threads start evicting pages when this value reaches 5%.
+  Application threads are involved in evicting when dirty fill ratio reaches 20%.
+  (Preceding numbers are defaults that can be changed using WT engine config.)
+
+ss wt cache tracked dirty pages in the cache:
+
+ss wt cache unmodified pages evicted:
+  The rate of non-dirty pages/s that are evicted by eviction threads and application threads.
+  Evicting unmodified pages is less expensive than evicting modified pages.
+
+ss wt cursor cursor insert calls:
+  Values inserted into WT tables per second.
+  These may be MongoDB collection documents or index entries.
+
+ss wt cursor cursor modify calls:
+  Used to update document in place in MongoDB >= 3.6 (PM-720).
+  Can cause high memory usage outside the WT cache (WT-4418).
+
+#ss wt cursor cursor next calls:
+#  Calls to retrieve the next item from a WiredTiger cursor per second.
+#  Usually[n][o][p][q] walking an index in the forward direction[r] or performing a collScan.
+#
+#ss wt cursor cursor prev calls:
+#  Calls to retrieve the previous item from a WiredTiger cursor per second.
+#  Usually[s] walking an index in reverse direction or performing a reverse collScan.
+
+ss wt cursor cursor remove calls:
+  Calls to delete a document or index entry per second.
+
+#ss wt cursor cursor search calls:
+#  Calls to retrieve a record by its WiredTiger record id per second.
+#  Usually[t][u][v] the result of retrieving a document supplied by an index.
+
+#ss wt cursor cursor search near calls:
+#  Calls to retrieve the closest record to a particular WiredTiger record id per second.
+#  Used with the oplog hack, when initializing a cursor,
+#  when seeking to the correct position in an index, and when restoring a cursor.
+
+#ss wt cursor cursor update calls:
+#  Calls to update an index entry per second.[w][x][y][z]
+
+ss wt cursor truncate calls:
+  Truncations per second; used to remove documents in bulk from capped collections.
+  Also used during compact.
+  Truncate takes a global X locks before 3.6.7 and 4.0.1.
+
+# The following metrics are signals for journaling activity and the impact of
+# colocating journal and data files
+# Cribbed from HELP-9103 and
+# https://wiki.corp.mongodb.com/display/KB/How+to+Diagnose+an+operational+stall+caused+by+co-locating+data+and+journal+on+the+same+storage+device
+
+ss wt thread-state active filesystem fsync calls:
+  Calls made to the OS to flush files to disk.
+  Performed for both checkpoint and journal I/O.
+
+ss wt log log sync time duration:
+  Duration of fsync calls to the OS in service of the journal.
+  Indicative of I/O performance impact on journaling
+
+ss wt log slot join calls found active slot closed:
+  Indicates that a bottleneck in journaling has blocked user (MongoDB) operations.
+  Expected to coincide with stalls and/or high latencies for user operations.
+  If there are significant values here when checkpoints are running, and journal
+  and data are on the same volume, the colocation of those files could be a bottleneck.
+
+ss wt log slot join found active slot closed:
+  Indicates that a bottleneck in journaling has blocked user (MongoDB) operations.
+  Expected to coincide with stalls and/or high latencies for user operations.
+  If there are significant values here when checkpoints are running, and journal
+  and data are on the same volume, the colocation of those files could be a bottleneck.
+
+ss transactions retriedCommandsCount:
+  The total number of received write commands with statements that have already 
+  been executed, across all sessions. Ignores any retryable writes that may 
+  happen internally as part of a chunk migration.
+
+ss transactions retriedStatementsCount:
+  The total number of received statements that have already been executed, 
+  across all sessions. Ignores any retryable writes that may happen 
+  internally as part of a chunk migration.
+
+ss transactions transactionsCollectionWriteCount:
+  The total number of writes to the config.transactions collection, triggered 
+  when a new retryable write statement is committed. For updates and deletes 
+  there is one write per statement, but there is only one per batch of documents 
+  inserted, except when there is a failure that leads to each document being 
+  inserted separately. Includes writes to a server's config.transactions collection 
+  that occur as part of a migration.

@@ -1,0 +1,916 @@
+:root {
+    --border: 1px solid rgb(200,200,200);
+    --border-radius: 4px;
+}
+
+
+/*
+ * body
+ */
+
+html {
+    width: 75em;
+    height: 50em;
+    background: white;
+}
+
+body, table, frameset, pre.info {
+    font-family: sans-serif;
+    font-size: 10pt;
+    margin: 0;
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+select, input {
+    outline: none;
+}
+
+select option {
+    font-size: 10pt;
+}
+
+
+
+/**********************
+ * toolbar
+ */
+
+.twisty {
+    fill: black;
+    margin-left: -0.7em;
+    margin-right: 0.3em;
+    height: 1em;
+    vertical-align: -10%;
+    pointer-events: initial !important;
+}
+
+
+/**********************
+ * toolbar
+ */
+
+#toolbar {
+    width: 100%;
+    padding-left: 2em;
+    padding-right: 1em;
+    padding-top: 0.3em;
+    padding-bottom: 0.2em;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    border-bottom: var(--border);
+    border-color: rgb(230,230,230);
+}
+
+#toolbar > * {
+    margin-right: 0.7em;
+}
+
+#undo {
+    margin-left: 1.5em;
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+#toolbar .icon {
+    height: 1.3em;
+    stroke-width: 5%;
+    stroke: rgb(150,150,150);
+    fill: none;
+}
+
+#toolbar .icon-plus {
+    stroke-width: 7%;
+}
+
+#toolbar .icon-close {
+    stroke-width: 7%;
+}
+
+#toolbar .icon text {
+    stroke: none;
+    fill: rgb(150,150,150);
+}
+
+/***********************
+ * Context selector
+ */
+
+.ctx-selector {
+    color: rgb(150,150,150);
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+.ctx-combo {
+    position: relative;
+    padding-right: 0.5em;
+    display: flex;
+    align-items: center;
+    margin-left: -0.3em;
+}
+
+.ctx-select {
+    color: rgb(150,150,150);
+    font-size: 11pt;
+    border: none;
+    background: none;
+    outline: none;
+    position: relative;
+    left: 0.7em;
+}
+
+.ctx-input {
+    position: absolute;
+    left: 0em;
+    top: -0.05em;
+    width: calc(100% - 1.0em);
+    height: 100%;
+    color: rgb(150,150,150);
+    font-size: 11pt;
+    border-color: transparent;
+
+}
+
+.ctx-input:focus {
+    border-color: initial;
+}
+
+.ctx-open-menu {
+    position: absolute;
+    left: calc(100% - 1.2em);
+    fill: rgb(150,150,150);
+    height: 1.3em;
+    background: white;
+    pointer-events: none;
+}
+
+.ctx-new {
+    font-weight: 100;
+    font-size: 14pt;
+    user-select: none;
+    margin-left: 0.5em;
+}
+
+
+/***********************
+ * Dataset box
+ */
+
+#dataset-content {
+    width: 60em;
+    height: 40em;
+    padding: 1em;
+    overflow: auto; /* scrollbars if needed */
+}
+
+.dataset-top {
+    display: flex;
+    flex-direction: column;
+}
+
+.dataset-top > span {
+    width: 100%;
+    position: relative;
+}
+
+.dataset-top > .dataset-file {
+    width: 100%;
+    position: relative;
+}
+
+.dataset-src {
+    /*padding-bottom: 0.5em;*/
+    font-weight: bold;
+}
+
+.dataset-headings {
+    padding-top: 0.5em;
+    color: rgb(150,150,150);
+    font-weight: bold;
+}
+
+.dataset-headings .dataset-file {
+    position: absolute;
+    left: 3em;
+}
+
+.dataset-file .dataset-file {
+    position: relative;
+    left: 3em;
+    padding-right: 1em;
+}
+
+.dataset-source, .dataset-headings {
+    padding-top: 0.5em;
+    display: flex;
+}
+
+.dataset-source :nth-child(2), .dataset-headings :nth-child(3) {
+    margin-left: auto;
+}
+
+.dataset-shift {
+    width: 5em;
+    padding-right: 1em;
+}
+
+.dataset-shift input {
+    width: 100%;
+}
+
+.dataset-show {
+    width: 4em;
+}
+
+.dataset-tag {
+    width: 7em;
+}
+
+.dataset-tag input {
+    width: 100%;
+    font-style: italic;
+}
+
+
+/***********************
+ * Info box
+ */
+
+#info-controls {
+    display: flex;
+    align-items: baseline;
+}
+
+#info-controls label {
+    white-space: pre;
+}
+
+#info-controls > * {
+    margin-right: 0.3em;
+    margin-left: 0.3em;
+}
+
+.info-controls-at {
+    margin-left: 1.5em !important;
+}
+
+.info-controls-time {
+    margin-left: 1em !important;
+    padding: 0.15em;
+    width: 15em;
+}
+
+#info-controls input, #info-controls select {
+    margin-left: 0.5em;
+    margin-right: 0.5em;
+}
+
+#info-content {
+    width: 60em;
+    height: 40em;
+    padding: 1em;
+    overflow-y: auto; /* scrollbars if needed */
+}
+
+.info-values {
+    pointer-events: none; /* allow click to be captured by container to close it */
+}
+
+.info-values ul {
+    list-style: none; /* no bullets */
+    padding-left: 2em;
+}
+
+.info-values > ul {
+    padding-left: 0em !important;
+}
+
+.info-values > ul > li > ul {
+    padding-top: 0.5em;
+}
+
+.info-values .twisty-parent {
+    padding-bottom: 0.5em;
+}
+
+.info-log-time {
+    font-weight: bold;
+}
+
+.info-log-mark {
+    color: #3131ff;
+}
+
+.info-log-slowms {
+    color: red;
+}
+
+/*
+
+this sizes text in info box to fit text so click can be captured by
+container so clicking outside text will close box
+
+however this proved very fussy to use, e.g. made selecting text very
+difficult, so disabling
+
+#info-content li {
+    float: left;
+    clear: both;
+    display: inline-block;
+    max-width: 100%;
+}
+*/
+
+/* but allow selecting text in info content */
+#info-content p, span {
+    pointer-events: initial !important;
+}
+
+#info-content td div {
+    /*display: inline; // shrink to fit width*/
+    pointer-events: initial !important; // allow selecting text instead of dismissing box
+}
+
+#info-content p {
+    margin: 0;
+    margin-left: 2em;
+    text-indent: -2em;
+}
+
+#info-content .info-property {
+    font-weight: bold;
+    padding-right: 0.5em;
+}
+
+#info-content ul {
+    margin-top: 0em;
+}
+
+.info-values {
+    padding-left: 2em;
+    padding-top: 1em;    
+}
+
+/* values (displayed, raw) heading */
+.info-values > div:first-child {
+    font-weight: bold;
+}
+
+/* values (displayed, raw) value table */
+.info-values > table {
+    /*width: 100%;*/
+    overflow: auto;
+}
+
+/* source heading */
+td.info-source {
+    padding-bottom: 0.5em;
+    font-weight: bold;
+    text-align: left;
+}
+
+/* value column */
+td.info-value {
+    text-align: right;
+    padding-right: 1em;
+    padding-left: 2em;
+}
+
+/* name column */
+td.info-metric {
+    white-space: pre;
+}
+
+
+
+/***********************
+ * Options
+ */
+
+.options {
+    display: flex;
+    flex-direction: row;
+}
+
+.options > div {
+    display: flex;
+    flex-direction: column;
+    padding: 1.2em;
+}
+
+.options > div > * {
+    margin-top: 0.1em;
+    margin-bottom: 0.1em;    
+}
+
+.options label {
+    display: flex;
+    white-space: nowrap;
+}
+
+.options input {
+    margin-left: 0em;
+    margin-right: 0.5em;
+}
+
+.options .option-value {
+    margin-left: auto;
+    width: 6.5em;
+}
+
+.options .fill {
+    margin-top: auto;
+}
+
+
+/***********************
+ * Search
+ */
+
+#search {
+    font-size: 10pt;
+    margin-left: 1em;
+    width: 15em;
+    align-self: flex-start; /* prevents growing vertically if container does */
+}
+
+/***********************
+ * Status
+ */
+
+#toolbar > *:last-child {
+    margin-left: auto; /* absorb space pushing us to the right */
+    margin-right: 3.5em;  /* xxx not sure why need this else bleeds off edge */
+}
+
+.error {
+    color: red;
+}
+
+/***********************
+ * Box - radiused corner table
+ */
+
+.box-open {
+    z-index: 2001;
+    border-radius: var(--border-radius);
+}
+
+td.box-closed {
+    border-color: transparent !important;
+}
+
+.box .icon {
+    padding: 0.2em;
+    padding-left: 0.3em;
+    padding-right: 0.3em;    
+}
+
+.box-closed:hover {
+    background: rgb(245,245,245);
+}
+
+.box-closed .box-title {
+    display: none;
+}
+
+.box-title {
+    padding-left: 0.3em;
+}
+
+.box-heading {
+    font-size: 11pt;
+    color: rgb(150, 150, 150);
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    padding-top: 0.2em;
+    padding-bottom: 0.2em;
+    display: flex;
+    align-items: center;
+}
+
+.box-heading-button {
+    font-size: buttonTextSize;
+    color: rgb(150, 150, 150);
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+}
+
+table.box {
+    border: none;
+}
+
+table.box > tr > td {
+    border-right: var(--border);
+    border-bottom: var(--border);    
+}
+
+table.box > tr:first-child > td {
+    border-top: var(--border);
+}
+
+table.box > tr > td:first-child {
+    border-left: var(--border);
+}
+table.box > tr:last-child > td:last-child {
+    border-bottom-right-radius: var(--border-radius);
+}
+
+table.box > tr:first-child > td:first-child {border-top-left-radius: var(--border-radius);}
+table.box > tr:first-child > td:last-child {border-top-right-radius: var(--border-radius);}
+table.box > tr:last-child > td:first-child {border-bottom-left-radius: var(--border-radius);}
+table.box > tr:last-child > td:last-child {border-bottom-right-radius: var(--border-radius);}
+
+.closer {
+    z-index: 2000;
+    background-color: rgb(255, 255, 255);
+    opacity: 0.5;
+}
+
+/***********************
+ * aligns view selector and key info
+ */
+.top-matter {
+    display: flex;
+    flex-direction: row;
+}
+
+/***********************
+ * View selector - select current view, display explanation
+ */
+.view-selector {
+    padding-top: 2em;
+    padding-left: 2em;
+    color: rgb(115,115,115);
+    display: flex;
+    flex-direction: row;
+}
+
+.view-selector .label-text {
+    font-size: 8pt;
+    //padding-bottom: 0.4em;
+}
+
+.view-selector select {
+    color: rgb(115,115,115);
+    font-size: 12pt;
+    border: none;
+    background: none;
+    outline: none;
+    position: relative;
+    left: -0.5em;
+    max-width: 100%; /* use "width" for debugging */
+}
+
+.view-selector-left {
+    display: flex;
+    flex-direction: column;
+}
+
+.view-selector-left button {
+    margin-right: auto;
+    margin-left: -0.25em;
+    margin-top: 1em;
+    padding-left: 1.5em;
+    padding-right: 1.5em;
+}
+
+.view-selector-explanation {
+    padding-left: 2em;
+    padding-top: 0.2em;
+    width: 40em;
+    position: relative;
+}
+
+.not-in-view-heading {
+    padding-left: 2em;
+    padding-top: 5em;
+    padding-bottom: 1em;
+    font-size: 8pt;
+    color: rgb(115, 115, 115);
+}
+
+/***********************
+ * KeyInfo
+ */
+.keyinfo {
+    padding-top: 2.2em;
+    padding-left: 2em;
+    padding-right: 2em;
+    margin-left: 1.5em;
+    text-indent: -1.5em;
+    display: flex;
+    flex-direction: column;
+    margin-left: auto;
+    color: rgb(115, 115, 115);
+}
+
+.keyinfo-key {
+    padding-right: 0.5em;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.keyinfo-key::after { 
+    content: ":"
+}
+
+.keyinfo-value {
+    white-space: wrap;
+}
+
+/***********************
+ * cautions btw view selector and charts
+ */
+.cautions {
+    color: red;
+    padding-left: 8em;
+    width: 60em;
+    padding-top: 2em;
+}
+
+
+/***********************
+ * Ranger - used for zoom selection on timeaxis and charts
+ */
+
+.ranger {
+    stroke: rgb(150, 150, 150);
+    stroke-width: 2;
+    fill: none;
+    position: relative;
+    z-index: 3000;
+}
+
+
+/***********************
+ * tip - box that shows values for charts and time axes, or description tip
+ */
+
+.tip {
+    position: absolute;
+    top: 100%;
+    z-index: 3000;
+    background: rgb(250,250,250);
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgb(200,200,200);
+    border-radius: 0.4em;
+    padding-right: 0.5em;
+    padding-left: 0.5em;
+    padding-top: 0.3em;
+    padding-bottom: 0.3em;
+    box-shadow: 0.15em 0.15em 0.2em 0em rgba(0,0,0, 0.1);
+}
+
+.valueTip {
+    display: flex;
+    flex-direction: column;
+}
+
+.valueTip td, .valueTip > span {
+    font-size: 85%;
+    white-space: pre;
+}
+
+/* we automatically select the text in the chart value tooltip,
+   so disable the default background color */
+.valueTip *::selection {
+    background: none;
+}
+
+.valueTip .spacer {
+    margin-top: 0.5em;
+}
+
+.infoTip {
+    white-space: normal;
+    display: none;
+    left: 2em;
+    z-index: 2999;
+    width: 35em;
+    font-size: 90%;
+}
+
+.infoTip td {
+    font-size: 90%;
+    vertical-align: top;
+}
+
+.infoTipButton {
+    width: 1.0em;
+    fill: none;
+    stroke: rgb(200,200,200);
+    stroke-width: 7px;
+    position: absolute;
+    top: 0.5em;
+    margin-left: 0.6em;
+    cursor: default;
+}
+
+.infoTipButton text {
+    font-size: 85;
+    fill: rgb(200,200,200);
+    stroke: none;
+}
+
+
+/***********************
+ * charts
+ */
+
+/* overall */
+#charts {
+    padding-top: 3em;
+    padding-bottom: 2em;
+    position: relative;
+}
+
+.yaxis-tick {
+    stroke: rgba(0,0,0,0.1);
+}
+
+span.stat-name {
+    color: rgb(150,150,150);
+}
+
+span.stat-units {
+    color: rgb(150,150,150);
+}
+
+
+span.y-label {
+    font-size: 90%;
+    color: rgb(150,150,150);
+}
+
+.timeaxis-tick {
+    stroke: rgba(0,0,0,0.1);
+    stroke-width: 0.7;
+    vector-effect: non-scaling-stroke;
+}
+
+.timeaxis {
+    position: relative;
+    z-index: 500;
+}
+
+.marker {
+    stroke: rgba(0, 0, 0, 0.3);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+}
+
+.remover {
+    fill: rgb(100, 100, 255);
+}
+
+
+/* chart size */
+.chart-size-tree {height: 1.3em;}
+.chart-size-small {height: 1.6em;}
+.chart-size-medium {height: 3em;}
+.chart-size-large {height: 7em;}
+
+/* space between charts */
+tr.chart-row-tree > td {padding-bottom: 0px;}
+tr.chart-row-small > td {padding-bottom: 4px;}
+tr.chart-row-medium > td {padding-bottom: 6px;}
+tr.chart-row-large > td {padding-bottom: 1.25em;}
+
+.treeLines {
+    font-family: menlo, "lucida console", courier, fixed;
+    font-size: 11pt;
+    padding-right: 6pt;
+    color: rgb(175,175,175);
+    cursor: default;
+}
+
+.treeHidden {
+    display: none;
+}
+
+/* section headings */
+.section-heading-row {
+    color: rgb(150, 150, 150);
+    font-size: 12pt;
+}
+
+.section-heading-twisty {
+    fill: rgb(150, 150, 150);
+    width: 0.8em;
+    height: 0.8em;    
+}
+
+/* heading includes section, view-selector */
+td.heading {
+    padding-bottom: 0.5em;
+}
+
+/* section headings indented even more */
+td.section-heading {
+    padding-left: 3em;
+    padding-top: 0.5em;
+}
+
+#charts td.stat:first-child {
+    padding-left: 5em;
+}
+
+tr.chart-row > td {
+    vertical-align: bottom;
+}
+
+td.stat {
+    text-align: right;
+    padding-right: 0.5em;
+    padding-left: 0.5em;
+}
+
+td.units {
+    color: rgb(150,150,150);
+    font-size: 90%;
+    padding-top: 0.2em;
+}
+
+/* space left/right of chart */
+td.chart {
+    padding-left: 0.75em;
+    padding-right: 0.75em;    
+}
+
+td.no-data {
+    color: rgb(150,150,150);
+    font-size: 12pt;
+    padding-top: 2em;
+    text-align: center;
+}
+
+.chart-container {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+.event-region {
+    z-index: 600; /* in front of time axis */
+}
+
+td.name {
+    padding-left: 0.75em;
+    text-align: left;
+    white-space: nowrap;
+    position: relative;
+}
+
+td.tag {
+    padding: none;
+    padding-left: 0.5em;
+    font-style: italic;
+    font-size: 90%;
+    color: rgb(125,125,125);
+    white-space: nowrap;
+}
+
+.head {
+    font-weight: bold;
+}
+
+.selected {
+    background: rgb(240,245,255);
+}
+
+.quiet {
+    color: rgb(200, 200, 200);
+}
+
+.label-text {
+    user-select: none;
+    cursor: default;
+}
+
+table, tr, td {
+    margin: 0;
+    border-spacing:0;
+}
+
+.red-alert {
+    fill: #ffc8c8;
+}
+
+.yellow-alert {
+    fill: #fdf896;
+}
+
+
+.green-alert {
+    fill: #92ef92;
+}
+

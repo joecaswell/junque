@@ -1,0 +1,119 @@
+<html>
+
+  <div id="basic-view-explanation">
+    The Basic view collects together the most important metrics for
+    assessing the overall health of a node or cluster. It can serve as
+    a useful starting point for constructing a custom view to diagnose
+    an issue.
+  </div>
+
+  <div id="memory-view-explanation">
+    <img src="figs/fig-1.png" style="width: 175px; position: absolute; left: 105%;">
+    The Memory view shows metrics useful for diagnosing memory
+    consumption issues. The figure shows how memory is
+    organized. Indicators of problems include:
+    <ul>
+      <li>
+        Large resident memory relative to avaiable physical memory;
+        generally this will be a result of one of the following
+        issues.
+      </li>
+      <li>
+        A server crash (diagnosed by uptime returning to 0 and no
+        indication of graceful shutdown in the mongod log) in
+        conjunction with an increase of resident memory is often the
+        result mongod being terminated by the OOM (out-of-memory)
+        killer on Linux.
+      <li>
+        A large amount of allocated memory outside of the WT cache
+        ("allocated minus wt cache"). Generally mongod aims to bound
+        memory allocated outside the cache; if this is not the case
+        further investigation to determine the cause is needed.
+      </li>
+      <li>
+        If the heap size ("heap_size") is larger than expected and
+        this is accounted for by a large amount of free memory in the
+        heap ("total free") but the allocated memory
+        ("current_allocated_bytes") has never been large enough to
+        account for the heap size, there may be a memory fragmentation
+        issue.
+      </li>
+      <li>
+        WT cache size should remain bounded by the configured maximum.
+      </li>
+    </ul>
+    The following are not necessarily an indicator of a problem per se:
+    <ul>
+      <li>
+        Large virtual memory: a substantial portion of virtual memory
+        may be non-resident and therefore not consuming available
+        physical memory.
+      </li>
+      <li>
+        A large amount of virtual memory not used by the heap
+        ("virtual minus heap"). Typically this is virtual memory
+        reserved for stacks, and can be large if there are a large
+        number of connections; however generally only a small portion
+        of this is resident.
+      </li>
+  </DIV>
+
+  <div id="bottlenecks-view-explanation">
+    Bottlenecks are places in the system where parallel operations may
+    queue waiting for some resource. Contended resources include CPU,
+    disk, and access to data structures. The magnitude of a bottleneck
+    is indicated by queue length or count of active operations, so it
+    is a dimensionless number. This is reported in one of the
+    following ways:
+    <ul>
+      <li>
+        Directly as a queue length, for example active
+        readers/writers, processes (threads) running/blocked, disk
+        queue length, WT transactions out.
+      </li>
+      <li>
+        As a utilization percentage, which is essentially queue length
+        truncated at 1; that is, a utilization of 100% corresponds to
+        a queue length ≥1.
+      </li>
+      <li>
+        As an accumulation of time spent waiting for a resource, such
+        as a lock.  This is typically recorded as cumulative
+        microseconds spent waiting across all threads; by calculating
+        a rate from this and scaling by one million, we can infer the
+        average number of threads waiting on that resource at any
+        given time, so this metric is presented with units of
+        "threads".
+      </li>
+    </ul>
+    To diagnose the cause of a bottleneck, consider the order in which
+    any given operation encounters the potential bottlenecks. If a
+    bottleneck is evident at one point in this sequence but not at the
+    next, then the problem must be between the upstream and downstream
+    points
+  </div>
+
+  <div id="colocation-view-explanation">
+    This view helps identify whether colocated data and journal files
+    are creating a bottleneck during checkpoints.
+    <ul>
+      <li>
+        Check the last phase of a checkpoint ("checkpoint currently
+        running"). During this phase the checkpoint calls fsync to
+        ensure durability of the checkpoint so we see more "active
+        filesystem fsync calls" (which includes both checkpoint
+        and journal I/O).
+      </li>
+      <li>
+        Higher "log sync time" indicates that I/O is slowing the
+        journaling process and disk I/O ("average utilization" and
+        "average queue length") should show the disk is over-utilized.
+      </li>
+      <li>
+        Finally, "active slot closed" metrics mean that slow
+        journaling is stalling MongoDB operations during checkpoints.
+      </li>
+    </ul>
+  </div>
+
+</html>

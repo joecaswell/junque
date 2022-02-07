@@ -1,0 +1,4 @@
+#!/bin/bash
+
+app=$(cd $(dirname $BASH_SOURCE)/t2-darwin-x64/t2.app; pwd)
+open -a $app "$@"
