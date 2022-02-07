@@ -39,25 +39,37 @@ var View = /** @class */ (function () {
         return "view: " + this.name;
     };
     View.prototype.contains = function (desc) {
-        if (this.overrides[desc.id] == "include")
+        if (this.overrides[desc.path.key] == "include")
+            return true;
+        else if (this.overrides[desc.name] == "include") 
+            return true;
+        else if (this.overrides[desc.id] == "include") 
             return true;
         else if (this.overrides[desc.id] == "exclude")
             return false;
+        else if (this.overrides[desc.name] == "exclude")
+            return false;
+        else if (this.overrides[desc.path.key] == "exclude")
+            return false;
         for (var i in this.exclude)
-            if (desc.path.key.match(this.exclude[i]))
+            if (desc.name.match(this.exclude[i]) || desc.path.key.match(this.exclude[i]))
                 return false;
         for (var i in this.include)
-            if (desc.path.key.match(this.include[i]))
+            if (desc.name.match(this.include[i]) || desc.path.key.match(this.include[i]))
                 return true;
         return false;
     };
     // add a metric to a view by setting its override to "include"
     View.prototype.add = function (desc) {
-        this.overrides[desc.id] = "include";
+       // this.overrides[desc.id] = "include";
+        u.log("Add: "+desc.name +", "+desc.key)
+        this.overrides[desc.name] = "include";
     };
     // remove a metric from a view by setting its override to "exclude"
     View.prototype.remove = function (desc) {
-        this.overrides[desc.id] = "exclude";
+       // this.overrides[desc.id] = "exclude";
+        u.log("Remove: "+desc.name +", "+desc.key)
+        this.overrides[desc.name] = "exclude";
     };
     // tell undo/redo about our new state, which is the set of overrides
     View.prototype.updateState = function () {
@@ -76,6 +88,7 @@ var View = /** @class */ (function () {
         try {
             for (var descs_1 = __values(descs), descs_1_1 = descs_1.next(); !descs_1_1.done; descs_1_1 = descs_1.next()) {
                 var desc = descs_1_1.value;
+                u.log("Toggle: "+desc.names+", "+desc.key);
                 if (this.contains(desc))
                     this.remove(desc);
                 else

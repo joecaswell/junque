@@ -36,6 +36,7 @@ var yaml = require("yaml");
 var path = require("path");
 var util = require("util");
 var u = require("./util");
+
 // all descriptors keyed by Desc.path.key (i.e. the metric)
 // we may have multiple descriptors per metric to produce multiple charts with different options
 var descriptors = new Map();
@@ -304,6 +305,8 @@ function searchPatterns(metric) {
                 };
                 subst("name");
                 subst("ratePath");
+                subst("addPath");
+                subst("subtractPath");
                 subst("divPath");
                 subst("mulPath");
                 subst("chart");
@@ -483,6 +486,14 @@ function prependPaths(desc, pre) {
         desc.divPath = desc.divPath.prepend(pre);
     if (desc.mulPath)
         desc.mulPath = desc.mulPath.prepend(pre);
+    if (desc.addPath)
+        if (Array.isArray(desc.addPath)){
+            desc.addPath = desc.addPath.map(p => p.prepend(pre));
+        }else{
+            desc.addPath = desc.addPath.prepend(pre);
+        }
+    if (desc.subtractPath)
+        desc.subtractPath = desc.subtractPath.prepend(pre);
     if (desc.pattern)
         desc.pattern = desc.pattern.prepend(pre);
 }
@@ -1161,6 +1172,7 @@ ss({ path: P("shardingStatistics", "countDocsClonedOnDonor"), rate: true });
 ss({ path: P("shardingStatistics", "countDocsClonedOnRecipient"), rate: true });
 ss({ path: P("shardingStatistics", "countDocsDeletedOnDonor"), rate: true });
 ss({ path: P("shardingStatistics", "countDonorMoveChunkLockTimeout"), rate: true });
+ss({ path: P("shardingStatistics", "rangeDeleterTasks") });
 cps({ path: P("numAScopedConnections") });
 cps({ path: P("numClientConnections") });
 cps({ path: P("totalAvailable") });
@@ -1319,6 +1331,37 @@ addSpecial(function (data) {
         for (var i = 0; i < nSamples; i++)
             virtualMinusHeap[i] = virtual[i] * 1024 * 1024 - heap[i];
     }
+    function systemMetricsKey(a,b) {
+        return P("ftdc", "systemMetrics", a, b).key;
+    }
+    // compute CPU utilization (for Atlas autoscaling)
+    var idle = data[systemMetricsKey("cpu", "idle_ms")];
+    var iowait = data[systemMetricsKey("cpu", "iowait_ms")];
+    var num_cpus = data[systemMetricsKey("cpu", "num_cpus")];
+    if(idle && iowait && num_cpus) {
+        var cpuUtilization = data[systemMetricsKey("cpu", "utilization(AutoScale)")] = new Array(nSamples);
+        cpuUtilization[0] = 0; //don't have a diff for the first sample
+        for (var i = 1; i < nSamples; i++) {
+            if (num_cpus[i] > 0) {
+                var idlenow = idle[i];
+                var idleprev = idle[i-1];
+                var iowaitnow = iowait[i];
+                var iowaitprev = iowait[i-1];
+                var max = (ts[i] - ts[i-1]) * num_cpus[i];
+                if ((idlenow >= idleprev) && (iowaitnow >= iowaitprev)) {
+                    cpuUtilization[i] = (1 - (idlenow - idleprev + iowaitnow - iowaitprev) / max) * 100;
+                    u.log("***CPU Util sample:", ts[i], idlenow, idleprev,iowaitnow,iowaitprev,max,num_cpus[i],cpuUtilization[i]);
+                } else {
+                    cpuUtilization[i] = 0
+                    u.log("***CPU Util: metric step back for sample",i);
+                }
+            }
+            else {
+                u.log("***CPU Util: zero CPUs for sample", i);
+            }
+        }
+        u.log("***CPU Util Final:",cpuUtilization);
+    }
 });
 ss({
     path: P("heapProfile", "stats", "totalActiveBytes"),
@@ -1392,8 +1435,9 @@ SECTION("System memory");
 //
 // Linux
 //
-function sm_lnx_mem(metric, name, chart) {
-    sm({ path: P("memory", metric), name: "memory " + name, scale: 1024, units: "MiB", chart: chart });
+function sm_lnx_mem(metric, name, chart, desc) {
+    desc = desc || {};
+    sm(Object.assign(desc,{ path: P("memory", metric), name: "memory " + name, scale: 1024, units: "MiB", chart: chart }));
 }
 sm_lnx_mem("Cached_kb", "cached", "sm_lnx_mem");
 sm_lnx_mem("Dirty_kb", "dirty", "sm_lnx_mem");
@@ -1402,6 +1446,7 @@ sm_lnx_mem("MemFree_kb", "free", "sm_lnx_mem");
 sm_lnx_mem("SwapTotal_kb", "swap total", "sm_swap");
 sm_lnx_mem("SwapCached_kb", "swap cached", "sm_swap");
 sm_lnx_mem("SwapFree_kb", "swap free", "sm_swap");
+sm_lnx_mem("Cached_kb", "reclaimable", "sm_lnx_mem", {addPath: [P("memory", "Buffers_kb"),P("memory","MemFree_kb")] });
 function addSpecialOp(result, left, op, right) {
     addSpecial(function (data) {
         var leftData = data[left.key];
@@ -1474,6 +1519,7 @@ sm_lnx_cpu("iowait", "iowait", "sm_lnx_cpu");
 sm_lnx_cpu("nice", "nice", "sm_lnx_cpu");
 sm_lnx_cpu("steal", "steal", "sm_lnx_cpu");
 sm_lnx_cpu("idle", "idle");
+sm({path: P("cpu","utilization(AutoScale)"), name:"cpu utilization(AutoScale)", units:"%",scale:1});
 sm_lnx_cpu("softirq", "softirq", "sm_lnx_cpu_2");
 sm_lnx_cpu("guest", "guest", "sm_lnx_cpu_2");
 sm_lnx_cpu("guest_nice", "guest_nice", "sm_lnx_cpu_2");
@@ -1771,12 +1817,14 @@ function sm_lnx_disk(metric, name, chart, desc) {
 }
 sm_lnx_disk("read_sectors", "bytes read", "sm_lnx_disk_data", { scale: 1024 * 1024 / sector, units: "MiB" });
 sm_lnx_disk("write_sectors", "bytes written", "sm_lnx_disk_data", { scale: 1024 * 1024 / sector, units: "MiB" });
+sm_lnx_disk("write_sectors", "bytes total", "sm_lnx_disk_data", { scale: 1024 * 1024 / sector, units: "MiB", addPath:P("disks", "{1}", "read_sectors") });
 sm_lnx_disk("reads", "read requests issued", "sm_lnx_disk_ops", { rate: true });
 sm_lnx_disk("writes", "write requests issued", "sm_lnx_disk_ops", { rate: true });
-sm_lnx_disk("reads_merged", "read requests merged", "sm_lnx_disk_merged", {});
-sm_lnx_disk("writes_merged", "write requests merged", "sm_lnx_disk_merged", {});
 var readsMetric = P("disks", "{1}", "reads");
 var writesMetric = P("disks", "{1}", "writes");
+sm_lnx_disk("writes", "total requests issued", "sm_lnx_disk_ops", {addPath: readsMetric, rate: true });
+sm_lnx_disk("reads_merged", "read requests merged", "sm_lnx_disk_merged", {});
+sm_lnx_disk("writes_merged", "write requests merged", "sm_lnx_disk_merged", {});
 sm_lnx_disk("read_time_ms", "average read wait time", "sm_average_wait_time", { ratePath: readsMetric, units: "ms" });
 sm_lnx_disk("write_time_ms", "average write wait time", "sm_average_wait_time", { ratePath: writesMetric, units: "ms" });
 sm_lnx_disk("read_sectors", "average read request size", "sm_average_request_size", { ratePath: readsMetric, scale: 1024 / sector, units: "KiB" });
@@ -2246,10 +2294,10 @@ ss({ path: P("metrics", "ttl", "passes"), rate: true });
 //
 SECTION("WiredTiger");
 //
-ss({ path: P("wiredTiger", "concurrentTransactions", "read", "available"), ignore: true }); // xxx
+ss({ path: P("wiredTiger", "concurrentTransactions", "read", "available")}); // xxx
 ss({ path: P("wiredTiger", "concurrentTransactions", "read", "out") });
 ss({ path: P("wiredTiger", "concurrentTransactions", "read", "totalTickets") });
-ss({ path: P("wiredTiger", "concurrentTransactions", "write", "available"), ignore: true });
+ss({ path: P("wiredTiger", "concurrentTransactions", "write", "available")});
 ss({ path: P("wiredTiger", "concurrentTransactions", "write", "out") });
 ss({ path: P("wiredTiger", "concurrentTransactions", "write", "totalTickets") });
 ss({ path: P("storageEngine", "backupCursorOpen") });
@@ -2338,6 +2386,10 @@ wt({ path: P("cache", "bytes currently in the cache"),
     divPath: P("cache", "maximum bytes configured"),
     scale: 0.01, units: "%", name: "cache fill ratio",
     alerter: gyrAlerter(80, 95)
+});
+wt({ path: P("cache", "pages read into cache"),
+    divPath: P("cache", "pages requested from the cache"),
+    scale: 0.01, units: "%", name: "cache miss ratio"
 });
 wt({ path: P("cache", "bytes not belonging to page images in the cache"), scale: "MiB" });
 wt({ path: P("cache", "bytes read into cache"), chart: "wt_cache_bytes_cache", scale: "MiB", rate: true });
@@ -2452,7 +2504,9 @@ wt({ path: P("cache", "tracked bytes belonging to overflow pages in the cache"),
 wt({ path: P("cache", "tracked dirty bytes in the cache"), scale: "MiB" });
 wt({ path: P("cache", "tracked dirty bytes in the cache"),
     divPath: P("cache", "maximum bytes configured"),
-    scale: 0.01, units: "%", name: "cache dirty fill ratio" });
+    scale: 0.01, units: "%", name: "cache dirty fill ratio",
+    alerter: gyrAlerter(5, 20)
+});
 wt({ path: P("cache", "tracked dirty pages in the cache") });
 wt({ path: P("cache", "unmodified pages evicted"), rate: true });
 wt({ path: P("capacity", "background fsync file handles considered"), rate: true });
@@ -2616,7 +2670,7 @@ wt({ path: P("log", "log scan records requiring two reads"), rate: true });
 wt({ path: P("log", "log server thread advances write LSN"), rate: true });
 wt({ path: P("log", "log server thread write LSN walk skipped"), rate: true });
 wt({ path: P("log", "log sync operations"), rate: true });
-wt({ path: P("log", "log sync time duration (usecs)"), rate: true, scale: 1000000, units: "threads" });
+wt({ path: P("log", "log sync time duration (usecs)"), rate: true, scale: 1000, units: "ms" });
 wt({ path: P("log", "log sync_dir operations"), rate: true });
 wt({ path: P("log", "log sync_dir time duration (usecs)"), rate: true, scale: 1000000, units: "threads" });
 wt({ path: P("log", "log write operations"), rate: true });

@@ -79,6 +79,44 @@ function processSource(result, source, rawData) {
                 for (var i = 0; i < ts.length - 1; i++)
                     dts[i] = (ts[i + 1] - ts[i]) / 1000.0;
             }
+
+            var needCopy = function () {
+                if (!isCopy) {
+                    ys = ys.slice();
+                    isCopy = true;
+                }
+            };
+ 
+            // desc.addPath: add a metric
+            if (desc.addPath) {
+                needCopy();
+                var paths=desc.addPath;
+                if (!Array.isArray(paths)){
+                    paths = [paths]
+                }
+                paths.forEach(path => {
+                var div = rawData[path.key];
+                if (!div) {
+                    u.log("missing " + path.displayString());
+                    return "continue";
+                }
+                for (var j = 0; j < ys.length; j++)
+                    ys[j] += div[j];
+                })
+            }
+ 
+            // desc.subtractPath: subtract a metric
+            if (desc.subtractPath) {
+                needCopy();
+                var div = rawData[desc.subtractPath.key];
+                if (!div) {
+                    u.log("missing " + desc.subtractPath.displayString());
+                    return "continue";
+                }
+                for (var j = 0; j < ys.length; j++)
+                    ys[j] -= div[j];
+            }
+ 
             // desc.rate: y'/t' = dy/dt
             if (desc.rate) {
                 var yy = new Array(ys.length);
@@ -102,12 +140,7 @@ function processSource(result, source, rawData) {
                 ys = yy;
                 isCopy = true;
             }
-            var needCopy = function () {
-                if (!isCopy) {
-                    ys = ys.slice();
-                    isCopy = true;
-                }
-            };
+
             // desc.scale: scale by a number
             if (desc.scale) {
                 needCopy();
@@ -115,6 +148,7 @@ function processSource(result, source, rawData) {
                 for (var j = 0; j < ys.length; j++)
                     ys[j] /= scale;
             }
+
             // desc.divPath: divide by a metric
             if (desc.divPath) {
                 needCopy();
@@ -123,8 +157,9 @@ function processSource(result, source, rawData) {
                     u.log("missing " + desc.divPath.displayString());
                     return "continue";
                 }
-                for (var j = 0; j < ys.length; j++)
-                    ys[j] /= div[j];
+                for (var j = 0; j < ys.length; j++) {
+                    ys[j] = (div[j] == 0)? 0 : ( ys[j] / div[j] );
+                }
             }
             // desc.mulPath: multiply by a metric
             if (desc.mulPath) {

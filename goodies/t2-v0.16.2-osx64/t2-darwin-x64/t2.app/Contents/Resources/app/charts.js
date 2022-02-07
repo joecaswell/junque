@@ -292,7 +292,7 @@ var Curve = /** @class */ (function () {
 // x,y axis.
 //
 // xxx could (or should) this be done with css instead?
-var chartWidth = "28em";
+var chartWidth = "52em";
 var Chart = /** @class */ (function () {
     function Chart(chartSet, source, tag, chartSize) {
         this.unitScale = 1; // amount to scale by for display in units

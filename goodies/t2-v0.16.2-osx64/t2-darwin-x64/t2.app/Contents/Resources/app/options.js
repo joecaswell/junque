@@ -24,10 +24,10 @@ var Options = /** @class */ (function () {
         var col1 = optionsBox.content.append("div");
         var col2 = optionsBox.content.append("div");
         // xxx tooltips
-        this.addBoolOption(col1, "merge", "merge related charts", "...", true);
+        this.addBoolOption(col1, "merge", "merge related charts", "...", false, true);
         this.addBoolOption(col1, "showValues", "show chart values", "...", true);
         this.addBoolOption(col1, "showZero", "show all-zero charts", "...", false);
-        this.addBoolOption(col1, "commonScale", "use common scale", "...", false);
+        this.addBoolOption(col1, "commonScale", "use common scale", "...", false, true);
         this.addBoolOption(col1, "autoScale", "autoscale numbers", "...", false);
         this.addBoolOption(col1, "showAlerts", "show alerts", "...", true);
         this.addBoolOption(col1, "showHeadings", "show headings", "...", true);
@@ -38,7 +38,7 @@ var Options = /** @class */ (function () {
         col2.append("span").classed("fill", true);
         this.addEnumOption(col2, "chartSize", "chart size", "...", String, ["small", "medium", "large"], "small");
         this.addEnumOption(col2, "timeline", "timeline", "...", String, ["normal", "aligned", "condensed"], "normal", true);
-        this.addEnumOption(col2, "nSamples", "number of samples", "...", Number, [100, 200, 500, 1000, 2000, 5000], 2000);
+        this.addEnumOption(col2, "nSamples", "number of samples", "...", Number, [100, 200, 500, 1000, 2000, 5000], 5000);
     }
     Options.prototype.addBoolOption = function (to, property, label, tooltip, value, filesChanged) {
         var _this = this;

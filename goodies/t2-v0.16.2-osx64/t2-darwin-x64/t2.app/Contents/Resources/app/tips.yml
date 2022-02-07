@@ -311,6 +311,9 @@ system memory free:
   Free memory on the system; may be used for both allocated memory and disk cache.
   Low values are expected and not of great concern unless the "cached" value is also low.
 
+system memory reclaimable: 
+  Calculated cached + buffers + free.  This is the value used for Atlas memory-based autoscaling.
+
 system memory anon total:
   Amount of anonymous memory in use systemwide.
   Anonymous memory is commonly used for stack and heap allocation.
@@ -622,6 +625,10 @@ ss wt cache fill ratio:
   The percentage of utilization of the WT cache.
   By default, between 80% and 95%, eviction threads evict cache content.
   Above 95%, application threads are also recruited for eviction.
+
+ss wt cache miss ratio:
+  The percentage of pages requested that were not found in the WT cache
+  Calculated from "pages requested from the cache"/"pages read into the cache"
 
 ss wt cache bytes not belonging to page images in the cache:
 
