@@ -1,2 +1,2 @@
-removed due to size
-get the frameworks from the t2 installer
+removed for spacew
+obtain the frameworks from the t2 installer
