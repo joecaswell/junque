@@ -1,0 +1,50 @@
+@-moz-document domain(salesforce.com) {
+    li.x-tab-strip-active, li.x-tab-strip-active .x-tab-right {
+        background: lightblue !important;
+    }
+}
+@-moz-document domain(www.toggl.com) {
+    .hero {
+        display: none !important;
+    }
+    .AnnouncementsContainer__container {
+        display: none !important;
+    }
+}
+@-moz-document domain(force.com){
+    .select2-container {
+        z-index: 1002 !important;
+    }
+    .slds-context-bar__item:not(.slds-no-hover):hover {
+        background-color: rgba(4,0,253,0.1) !important;
+    }
+    .slds-context-bar__item.slds-is-active {
+        background-color: rgba(4,0,253,0.1) !important;
+        padding-top: 5px !important;
+    }
+    .slds-context-bar {
+        border-bottom-color: #0400FD !important;
+    }
+    .slds-context-bar__item.slds-is-active::after {
+        content: '' !important;
+        display: block !important;
+        position: absolute !important;
+        left:0 !important;
+        bottom: -3px !important;
+        height: 3px !important;
+        width: 100% !important;
+        background-color: rgba(2,0,126,0.1) !important;
+        border: 0 !important;
+    }
+    .slds-context-bar__item.slds-is-active.slds-has-sub-tabs::after {
+        background-color: white !important;
+    }
+    .slds-context-bar__item.slds-is-active::before { 
+        background-color: #0400FD !important;
+    }
+}
+@-moz-document domain(visualforce.com){
+    .select2-container {
+        z-index: 1002 !important;
+    }
+}
