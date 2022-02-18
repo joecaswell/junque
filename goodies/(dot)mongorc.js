@@ -468,39 +468,50 @@ function randomPoint(lon, lat, radius) {
     }
 }
 
-function randomLoc(lon, lat, radius) {
+function distance(frmlon, frmlat, tolon, tolat, R) {
+    
+    R = R || 6371000;
+
+    // a = sin²(Δφ/2) + cos(φ1)⋅cos(φ2)⋅sin²(Δλ/2)
+    // δ = 2·atan2(√(a), √(1−a))
+    // see mathforum.org/library/drmath/view/51879.html for derivation
+
+    const dlat = tolat - frmlat;
+    const dlon = tolon - frmlon;
+
+    const a = Math.sin(dlat/2)*Math.sin(dlat/2) + Math.cos(frmlat)*Math.cos(tolat) * Math.sin(dlon/2)*Math.sin(dlon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const d = R * c;
+
+    return d;
+}
+
+function randomLoc(dlon, dlat, radius) {
+
     // assumes perfectly spherical earth with radius 6,371 meters
     // and that the trig functions use radians
-    lon = lon || 0
-    lat = lat || 0
+    var lon = dlon || 0;
+    var lat = dlat || 0;
+    lon = lon * Math.PI / 180;
+    lat = lat * Math.PI / 180;
+    const earthRadius = 6371000;
     if (radius == undefined) {
-        radius = 6371 * Math.PI
+        radius = earthRadius * Math.PI;
     }
     
     // direction to travel from the original vector
-    var t = _randomFun() * 2 * Math.PI
-    // longitude component
-    var dx = Math.cos(t)
-    // latitude component of the direction
-    var dy = Math.sin(t)
-    // offset from the original vector in radians
-    var r = _randomFun() * (radius/6371)
-    //print("radians:" + r)
-    //print("degress:" + r * 180/Math.PI)
-    // offsets in degrees
-    var x = r * dx * 180/Math.PI
-    var y = r * dy * 180/Math.PI
+    var b = _randomFun() * 2 * Math.PI;
+    // distance to travel
+    var d = _randomFun() * radius;
 
-    var nlat = lat + y;
-    var nlon = lon + x;
+    const nlat = Math.asin( Math.sin(lat)*Math.cos(d/earthRadius) +
+                      Math.cos(lat)*Math.sin(d/earthRadius)*Math.cos(b) );
+    const nlon = lon + Math.atan2(Math.sin(b)*Math.sin(d/earthRadius)*Math.cos(lat),
+                           Math.cos(d/earthRadius)-Math.sin(lat)*Math.sin(nlat));
+    // normalize
+    const flon = (nlon + 3*Math.PI) % (2*Math.PI) - Math.PI
 
-    //normalize
-    if (nlon < -180) nlon += 360
-    if (nlon > 180) nlon -= 360
-    if (nlat < -90) nlat = -180 - nlat
-    if (nlat > 90) nlat = 180 - nlat
-
-    return [ nlon, nlat ]
+    return [ flon * 180 / Math.PI, nlat * 180 / Math.PI ];
 }
 
 function randomPolygon(lon, lat, radius, npoints) {
