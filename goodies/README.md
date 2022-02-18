@@ -3,6 +3,7 @@ Some bits and bobs from my time at MongoDB
 <details>
     <summary>.mongorc.js (for the legacy shell)</summary>
     Functions added to the global shell:  
+    
     - shuffle(array) - return the array with elements in random order, original array remains unmodified. (usual caveats about object references within the array)  
     - oplogWindow(Seconds(Int), Verbose(Bool)) - Both arguments optional.  Returns oplog window.  If Seconds is provided, estimates the oplog window based on the oplog usage in the last [Seconds]  
     - randomDate(Milliseconds) - return a javascript Date object up to Milliseconds in the past.  If Milliseconds not provided, return a random date between epoch and now  
@@ -19,5 +20,5 @@ Some bits and bobs from my time at MongoDB
     - setRandomSeed(seed, prime) - functions in this file will use a seeded random number generator instead of Math.random().  Default seed is current time, defaul prime is 16525637  
     - resetRandom() - revert to using Math.random()  
   
-    There are some other, I'll add notes as I find time  
+    There are some others, I'll add notes as I find time  
 </details>
