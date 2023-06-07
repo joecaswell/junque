@@ -290,6 +290,7 @@ var mod10_check = function(number) {
     }
 }
 
+/* mongosh killed some cool stuff
 DBCollection.prototype.embiggen = function(targetsize) {
     var dbase = this._db;
     var dbname = this._db._name;
@@ -439,6 +440,7 @@ DB.prototype.checkForLargeShardKeys = function() {
         return ({collection:cname, result:coll.checkForLargeShardKeys()});
     })
 }
+*/
 
 function checkForLargeShardKeys(query,configDb) {
     if (configDb === undefined) configDb = db.getSiblingDB("config")
@@ -738,7 +740,7 @@ Object.defineProperty(Object.prototype,"project",{
     //print("returning:",tojsononeline(res))
     return res;
 }})
-
+/*
 // pass db method as a string or a function with 1 argument
 // function will be passed the db object, eachDB will return the value returned in an array
 DB.prototype.eachDB = function(lambdaOrMethod) {
@@ -776,7 +778,7 @@ DB.prototype.eachCollection = function(lambdaOrMethod) {
         return _mapfun(_collection);
     }).reduce(function(a,b){return a.concat(b)},[])
 }
-
+*/
 function happy(n,chain) {
     chain = chain || [];
     if (n==1) return true;
