@@ -1,3 +1,4 @@
+function decodeResumeToken(token) {
 
     function Reader(hexstring) {
 
@@ -122,7 +123,6 @@
         }
     }
 
-function decodeResumeToken(token) {
     let reader = new Reader(token);
     return reader.readArray();
 }
