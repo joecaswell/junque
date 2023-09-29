@@ -80,7 +80,7 @@
             let type = this.readUInt8();
             let data = this.buff.subarray(0,size);
             this.buff = this.buff.subarray(size);
-            return new BinData(type, data.hexSlice())
+            return new BinData(type, data.base64Slice())
         }
 
         this.readObjectId = function() {
