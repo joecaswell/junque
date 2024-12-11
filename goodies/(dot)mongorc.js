@@ -1,8 +1,11 @@
+var tojson = JSON.stringify
+
 var _randomFun = Math.random; //default to generic random in generator functions
 const _savedRandom = Math.random;
 var setRandom = function(lambda) {
     if (typeof lambda == "function") {
         _randomFun = lambda;
+        Math.random = lambda;
     }
 }
 
@@ -538,6 +541,12 @@ function randomPolygon(lon, lat, radius, npoints) {
   return points;
 }
 
+function randomDateRange(from, to) {
+    var range = to.valueOf() - from.valueOf()
+    var newdate = new Date(from.valueOf() + Math.trunc(_randomFun() * range))
+    return newdate
+}
+
 function randomDate(ago) {
     var now = (new Date()).valueOf()
     var range = ago || now
@@ -784,4 +793,337 @@ function happy(n,chain) {
     if (n==1) return true;
     if (chain.indexOf(n) >=0 ) return false;
     return happy(n.toString().split("").reduce((a,c)=>{d=parseInt(c); return d*d+a;},0),chain.concat([n]))
+}
+
+function deepDiff(a, b, tag=null) {
+    let diffmsg = {}
+        if (a === b) return {}
+
+        if (a == null || b == null ||
+            typeof a != "object" ||
+            typeof b != "object"){
+          return {a:a,b:b}
+        }
+
+    let keya = Object.keys(a)
+        let keyb = Object.keys(b)
+
+        for (let key of keya) {
+            if (keyb.includes(key)) {
+                    let diff = deepDiff(a[key],b[key], tag + "." + key)
+                    if (Object.keys(diff).length > 0 ) {
+                       diffmsg[key] = diff
+                    }
+                } else {
+                diffmsg[key] = {a:a[key],b:undefined}
+                }
+        }
+        for (let key of keyb) {
+            if (!keya.includes(key)) {
+            diffmsg[key] = {a:undefined,b:b[key]}
+            }
+        }
+    return diffmsg
+}
+
+function connectionData(dbname,collname){
+	tag=65;
+	sw=String.fromCharCode(tag);
+	c=db.getSiblingDB(dbname).getCollection(collname);
+	branches=c.find({ id: 20698 }, { t: 1, _id: 0 }).toArray().map(
+	  function (o) {
+	     return {case:{$lt:["$t",o.t]},then:String.fromCharCode(tag++)};
+	});
+	if (branches.length > 0) {
+	   sw={'$switch':{'branches':branches,default:String.fromCharCode(tag)}};
+	}
+	return c.aggregate([
+	  {$match:{id:{$in:[22943,22944,22989,51800,51803,20429,20250,20883,5286306]}}},
+      {$sort: {t:1}},
+	  {$addFields:{conn:{$toString:{$ifNull:["$attr.connectionId",{$substr:["$ctx",4,-1]}]}}}},
+	  {$group:{
+	      _id:{connection:"$conn",restart:sw},
+	      reslen:{$sum:"$attr.reslen"},
+	      hasStart:{$sum:{$cond:[{$eq:["$id",22943]},1,0]}},
+	      hasEnd:{$sum:{$cond:[{$eq:["$id",22944]},1,0]}},
+	      hasMetadata:{$sum:{$cond:[{$eq:["$id",51800]},1,0]}},
+	      first:{$min:"$t"},
+	      last:{$max:"$t"},
+	      count:{$sum:1},
+	      auth:{$addToSet:{$cond:[{$in:["$id",[5286306,20429,20250]]},{success:{$in:["$id",[5286306,20250]]},principal:{$ifNull:["$attr.principalName","$attr.user"]},db:{$ifNull:["$attr.authenticationDatabase","$attr.db"]}},"$$REMOVE"]}},
+	      remote:{$addToSet:"$attr.remote"},
+	      app:{$addToSet:"$attr.doc.application.name"},
+	      driver:{$addToSet:"$attr.doc.driver"},
+	      os:{$addToSet:"$attr.doc.os"},
+          errors:{$addToSet:"$attr.error.errmsg"},
+          disconnect:{$addToSet:{$cond:[{$eq:["$id",20883]},"$msg",undefined]}}
+      }},
+      {$addFields:{
+            errors:{$concatArrays:["$errors",{$filter:{input:"$disconnect",cond:{$ne:["$$this",null]}}}]}
+      }},
+      {$project:{disconnect:0}},
+      {$sort:{"_id.restart":1,"first":1}}
+	])
+}
+
+function connectionCSVOrig(filename, dbname, collname) {
+  if (filename === undefined) {
+      print("Usage:\n\tconnection(<filename>,<dbname>,<collection name>)")
+      return
+  }
+  require("fs");
+  return fs.writeFileSync(filename,
+               ['"Restart","Connection","Remote","Connect","Disconnect","Duration","Authentication","Driver Name","Driver Version","Application","OS Type","OS Name","Version","Arch","Errors"'].concat(
+               connectionData(dbname,collname).toArray().map(o=>{
+                   return [
+                      o._id.restart,
+                      o._id.connection,
+                      o.remote[0],
+                      o.hasStart?o.first.toISOString():"",
+                      o.hasEnd?o.last.toISOString():"",
+                      (o.hasStart && o.hasEnd)?(o.last - o.first):"",
+                      (o.auth.length>0)?o.auth.map(e=>e.principal + "@" + e.db + " " +e.success).join("/").replace(/,/g,""):"",
+                      o.driver[0]?.name?o.driver[0].name:"",
+                      o.driver[0]?.version?o.driver[0].version:"",
+                      o.app[0]?o.app[0]:"",
+                      o.os[0]?.type?o.os[0].type:"",
+                      o.os[0]?.name?o.os[0].name:"",
+                      o.os[0]?.version?o.os[0].version:"",
+                      o.os[0]?.architecture?o.os[0].architecture:"",
+                      o.errors.join(",").replace(/,/g," ")
+                ].map(o=>JSON.stringify(o)).join(",")})).join("\n")
+ )
+}
+
+
+async function connectionCSVCursor(filename, dbname, collname) {
+  if (filename === undefined) {
+      print("Usage:\n\tconnection(<filename>,<dbname>,<collection name>)")
+      return
+  }
+  require("fs");
+ 
+  var handle = await fs.promises.open(filename,"w");
+  if (!handle) {
+      throw new Error("Failed to open file "+filename);
+  }
+
+  handle.write('"Restart","Connection","Remote","Connect","Disconnect","Duration","Authentication","Driver Name","Driver Version","Application","OS Type","OS Name","Version","Arch","Errors"');
+  handle.write("\n");
+  var cursor = connectionData(dbname,collname)
+  while (cursor.hasNext()) {
+      obj = cursor.next();
+      var linedata = [
+                      obj._id.restart,
+                      obj._id.connection,
+                      obj.remote[0],
+                      obj.hasStart?obj.first.toISOString():"",
+                      obj.hasEnd?obj.last.toISOString():"",
+                      (obj.hasStart && obj.hasEnd)?(obj.last - obj.first):"",
+                      (obj.auth.length>0)?obj.auth.map(e=>e.principal + "@" + e.db + " " +e.success).join("/").replace(/,/g,""):"",
+                      obj.driver[0]?.name?obj.driver[0].name:"",
+                      obj.driver[0]?.version?obj.driver[0].version:"",
+                      obj.app[0]?obj.app[0]:"",
+                      obj.os[0]?.type?obj.os[0].type:"",
+                      obj.os[0]?.name?obj.os[0].name:"",
+                      obj.os[0]?.version?obj.os[0].version:"",
+                      obj.os[0]?.architecture?obj.os[0].architecture:"",
+                      obj.errors.join(",").replace(/,/g," ")
+                ];
+      handle.write(linedata.map(ln => JSON.stringify(ln)).join(","));
+      handle.write("\n");
+  }
+  await handle.sync();
+  await handle.close();
+}
+
+function unhorkLong(size) { 
+    let low = BigInt(size.low < 0 ? Math.pow(2, 32) + size.low : size.low); 
+    let high = BigInt(size.high < 0 ? Math.pow(2, 32) + size.high : size.high); 
+    let negative = (size.unsigned === false && size.high < 0); 
+    let num=BigInt(Math.pow(2, 32)) * high + low; 
+    if(negative){num = BigInt(-1*Math.pow(2,64)) + num}; 
+    return num
+}
+
+// add toDate method to Timestamps
+Timestamp.prototype.toDate = function() { return new Date(this.getHighBitsUnsigned()*1000)}
+
+function waitForCheckpoint(limit) {
+    if (!limit) limit = 3600000; //default to wait up to an hour for a checkpoint
+    let start=new Date();
+    let curgen = db.serverStatus().wiredTiger.transaction['transaction checkpoint generation'];
+    let res = false;
+    while ((new Date() - start) < limit) {
+        if (db.serverStatus().wiredTiger.transaction['transaction checkpoint generation'] > curgen) return true;
+        sleep(500);
+    }
+    return false
+}
+
+function decodeResumeToken(token, debug=false) {
+
+    function Reader(hexstring) {
+
+        this.buff = new Buffer.from(hexstring,"hex");
+
+        this.debuglog = function(msg) {
+            if (debug) {
+                if (this.buff) {
+                    console.log(msg, this.buff.hexSlice());
+                }
+            }
+        }
+
+        this.readers = {
+            10: "readMinKey",
+            20: "readNull",
+            41: "readZero",
+            43: "readUInt8",
+            44: "readUInt16",
+            46: "readUInt32",
+            60: "readCString",
+            70: "readObject",
+            90: "readBinData",
+            100: "readObjectId",
+            110: "readBoolFalse",
+            111: "readBoolTrue",
+            130: "readTimestamp"
+        }
+
+        this.readMinKey = function() {
+            this.debuglog("readMinKey");
+            return MinKey();
+        }
+
+        this.readNull = function() {
+            this.debuglog("readNull");
+            return null;
+        }
+
+        this.readZero = function() {
+            this.debuglog("readZero");
+            return 0;
+        }
+
+        this.readUInt8 = function() {
+            this.debuglog("readUInt8");
+            let res = this.buff.readUInt8();
+            this.buff = this.buff.subarray(1);
+            this.debuglog(res);
+            return res
+        }
+
+        this.readUInt16 = function() {
+            this.debuglog("readUInt16");
+            let res = this.buff.readUInt16BE();
+            this.buff = this.buff.subarray(2);
+            this.debuglog(res);
+            return res
+        }
+
+        this.readUInt32 = function() {
+            this.debuglog("readUInt32");
+            let res = this.buff.readUInt32BE();
+            this.buff = this.buff.subarray(4);
+            this.debuglog(res);
+            return res
+        }
+
+        this.readCString = function() {
+            this.debuglog("readCString");
+            let res = ""
+            if (this.buff.length > 0 && this.buff[0] != 0) {
+                if ((i=this.buff.indexOf(0)) > -1) {
+                    if (i > 0) {
+                        res = this.buff.subarray(0,i).toString();
+                    }
+                    this.buff = this.buff.subarray(i+1);
+                }
+            }
+            this.debuglog(res);
+            return res
+        }
+
+        this.readObject = function() {
+            this.debuglog("readObject");
+            let res = {}
+            let type = 1;
+            do {
+                type = this.readUInt8();
+                this.debuglog("type:" + type);
+                if (type != 0) {
+                    fieldname = this.readCString();
+                    res[fieldname] = this.readNext();
+                    this.debuglog("{" + fieldname + ": " + res[fieldname] + "}")
+                }
+            } while (type != 0);
+            this.debuglog(res);
+            return res
+        }
+
+        this.readBinData = function(){
+            this.debuglog("readBinData");
+            let size = this.readUInt8();
+            let type = this.readUInt8();
+            let data = this.buff.subarray(0,size);
+            this.buff = this.buff.subarray(size);
+            let res = new BinData(type, data.base64Slice());
+            this.debuglog(res);
+            return res;
+
+        }
+
+        this.readObjectId = function() {
+            this.debuglog("readObjectId");
+            let oid = this.buff.subarray(0,12);
+            this.buff = this.buff.subarray(12);
+            this.debuglog(oid);
+            return new ObjectId(oid);
+        }
+
+        this.readBoolFalse = function() {
+            this.debuglog("readBoolFalse");
+            return false;
+        }
+
+        this.readBoolTrue = function() {
+            this.debuglog("readBoolTrue");
+            return true;
+        }
+
+        this.readTimestamp = function() {
+            this.debuglog("readTimestamp");
+            let ts = this.readUInt32();
+            let cnt = this.readUInt32();
+            let res = new Timestamp(ts,cnt);
+            this.debuglog(res);
+            return res
+        }
+
+        this.readNext = function() {
+            let type = this.readUInt8();
+            let fun = this.readers[type];
+            this.debuglog("readNext", fun.name);
+            if (fun && this[fun]) {
+                let res = this[fun]();
+                return res;
+            } else {
+                throw("Unknown type " + type);
+            }
+        }
+
+        this.readArray = function() {
+            this.debuglog("readArray");
+            let result = []
+            while (this.buff.length > 0 && this.buff[0] != 4) {
+                result.push(this.readNext());
+            } 
+            this.debuglog(result);
+            return result
+        }
+    }
+
+    let reader = new Reader(token);
+    return reader.readArray();
 }
