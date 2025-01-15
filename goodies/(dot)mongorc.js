@@ -896,7 +896,7 @@ function connectionCSVOrig(filename, dbname, collname) {
 }
 
 
-async function connectionCSVCursor(filename, dbname, collname) {
+async function connectionCSV(filename, dbname, collname) {
   if (filename === undefined) {
       print("Usage:\n\tconnection(<filename>,<dbname>,<collection name>)")
       return
@@ -1127,3 +1127,16 @@ function decodeResumeToken(token, debug=false) {
     let reader = new Reader(token);
     return reader.readArray();
 }
+
+function resumeTokenTimestamp(token) {
+    if (!token) throw("No resume token provided")
+    let working = token;
+    if (token.resumeAfter) { working = token.resumeAfter._data; }
+    if (token._data) { working = token._data }
+    if (typeof working != "string") throw("Expected string resume token");
+    let tag = working.substring(0,2);
+    if (tag != "82") throw("Invalid resume token");
+    let epoch = parseInt(working.substring(2,10),16);
+    let inc = parseInt(working.substring(10,18),16);
+    return new Timestamp(epoch, inc);
+} 
