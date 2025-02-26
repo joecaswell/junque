@@ -930,8 +930,7 @@ async function connectionCSV(filename, dbname, collname) {
                       obj.os[0]?.architecture?obj.os[0].architecture:"",
                       obj.errors.join(",").replace(/,/g," ")
                 ];
-      handle.write(linedata.map(ln => JSON.stringify(ln)).join(","));
-      handle.write("\n");
+      handle.write(linedata.map(ln => JSON.stringify(ln)).join(",") + "\n");
   }
   await handle.sync();
   await handle.close();
