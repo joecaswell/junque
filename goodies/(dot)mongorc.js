@@ -862,7 +862,7 @@ function connectionData(dbname,collname){
             errors:{$concatArrays:["$errors",{$filter:{input:"$disconnect",cond:{$ne:["$$this",null]}}}]}
       }},
       {$project:{disconnect:0}},
-      {$sort:{"_id.restart":1,"first":1}}
+      {$sort:{"_id.restart":1,"_id.connection":1,"first":1}}
 	])
 }
 
