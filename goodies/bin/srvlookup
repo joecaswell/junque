@@ -1,0 +1,11 @@
+#! /bin/bash
+
+function echorun {
+    echo "> $@"
+    $@
+    echo ""
+}
+
+echorun dig +short srv _mongodb._tcp."$1"
+echorun dig +short txt "$1"
+dig +short srv _mongodb._tcp."$1" | awk '{print $4}' |  sort | uniq | while read host; do echorun dig +short $host; done
