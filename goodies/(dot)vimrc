@@ -232,6 +232,10 @@ if v:version >= 700
 	map OC :tabn<CR>
 	map p :tabp<CR>
 	map OD :tabp<CR>
+    map <ESC>j :.!jq .<CR>
+    map <ESC>jj v5j:.!jq .<CR>
+    map <ESC>jk v5k:!jq .<CR>
+    map <ESC>ja ggvG:!jq .<CR>
 	" shorten up the tab titles by calculating relative paths when possible
 	function GetRelativePath(path)
 		if bufname('') == a:path
@@ -300,21 +304,20 @@ if v:version >= 700
 		for i in range(tabpagenr('$'))
 			let buflist = tabpagebuflist(i+1)
 			let winnr = tabpagewinnr(i+1)
-            let tabname = '['.(i + 1).':'.substitute(GetRelativePath(bufname(buflist[winnr - 1])), '^'.$HOME, '~', '').']'
 			if getbufvar(buflist[winnr - 1], '&modified')
 				if tabpagenr() == i + 1
 					let attributes += ['%#TabLineModSel#']
 				else
 					let attributes += ['%#TabLineMod#']
 				endif
-				let tabs += ['+'.tabname]
+				let tabs += ['+['.(i + 1).':'.substitute(GetRelativePath(bufname(buflist[winnr - 1])), '^'.$HOME, '~', '').']']
 			else
 				if tabpagenr() == i + 1
 					let attributes += ['%#TabLineSel#']
 				else
 					let attributes += ['%#TabLine#']
 				endif
-				let tabs += [tabname]
+				let tabs += ['['.(i + 1).':'.substitute(GetRelativePath(bufname(buflist[winnr - 1])), '^'.$HOME, '~', '').']']
 			end
 		endfor
 
