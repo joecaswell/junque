@@ -17,7 +17,7 @@ import sys
 import json
 
 def _msg(*s):
-    print >>sys.stderr, ' '.join(s)
+    print(' '.join(s), file=sys.stderr)
 
 #
 # basic bson parser, to be extended as needed
@@ -42,9 +42,9 @@ def _read_bson_doc(buf, at, ftdc=False):
     doc_end = at + doc_len
     at += 4
     while at < doc_end:
-        bson_type = ord(buf[at])
+        bson_type = buf[at]
         at += 1
-        name_end = buf.find('\0', at)
+        name_end = buf.find(b'\0', at)
         n = buf[at : name_end]
         at = name_end + 1
         if bson_type==0: # eoo
@@ -63,9 +63,9 @@ def _read_bson_doc(buf, at, ftdc=False):
         elif bson_type==4: # array
             v = _read_bson_doc(buf, at, ftdc)
             l = v.bson_len
-            if not ftdc: v = v.values() # return as array
+            if not ftdc: v = list(v.values()) # return as array
         elif bson_type==8: # bool
-            v = ord(buf[at])
+            v = buf[at]
             l = 1
         elif bson_type==5: # bindata
             l = _uint32.unpack_from(buf, at)[0]
@@ -99,7 +99,7 @@ def _read_bson_doc(buf, at, ftdc=False):
         else:
             raise Exception('unknown type %d(%x) at %d(%x)' % (bson_type, bson_type, at, at))
         if v != None:
-            doc[n] = v
+            doc[n.decode("utf-8")] = v
         at += l
     assert true, 'eoo not found' # should have seen an eoo and returned
 
@@ -154,7 +154,7 @@ def _decode_chunk(chunk_doc, first_only):
         res = 0
         shift = 0
         while True:
-            b = ord(data[at])
+            b = data[at]
             res |= (b&0x7F) << shift
             at += 1
             if not (b&0x80):
@@ -167,7 +167,7 @@ def _decode_chunk(chunk_doc, first_only):
     nzeroes = 0
     for metric_values in metrics.values():
         value = metric_values[-1]
-        for _ in xrange(ndeltas):
+        for _ in range(ndeltas):
             if nzeroes:
                 delta = 0
                 nzeroes -= 1
@@ -261,7 +261,8 @@ def read(fn):
                     yield chunk
                 break
         except Exception as e:
-            print >>sys.stderr, 'does not appear to be %s: %s' % (name, str(e))
+            print('does not appear to be %s: %s' % (name, str(e)), file=sys.stderr)
+            raise
 
 #
 # sniff test
@@ -269,80 +270,9 @@ def read(fn):
 
 if __name__ == '__main__':
     for chunk in read(sys.argv[1]):
-        values = chunk.values()
+        values = list(chunk.values())
+        keys = list(chunk.keys())
         assert all(len(values[0])==len(v) for v in values)
-        print 'chunk, %d keys, %d values, key 0: %s, key 0 value 0: %d' % (
-            len(chunk.keys()), len(values[0]), chunk.keys()[0], chunk[chunk.keys()[0]][0]
-        )
-
-
-#
-# this file: t2/scripts/readers.py
-#
-# Spec:
-# https://docs.google.com/document/d/1CRUnSIs8C-giQ-eyT1CGcuViFVxiKHjPpku1z1HWyEk/edit#heading=h.olkyyjitfjh
-# 
-# diagnostic.data directory containing sequence of metrics files
-#     metrics.<DATE> file containing sequence of bson docs
-#     plus metrics.interim, which is less compressed
-#         bson doc containing metadata
-#             _id: start datetime
-#             type: 0
-#             hostinfo: ...
-#             buildInfo: ...
-#             getCmdLineOpts: ...
-#         bson doc containing ftdc data "chunk"
-#             _id: start datetime
-#             type: 1
-#             data: BinData field containing data
-#                 length
-#                 zlib compressed data <- this is efficient to decompress in Python
-#                     reference sample BSON document defines schema (set of metrics) of following
-#                     metric count - number of metrics
-#                     delta count - number of deltas relative to reference sample BSON doc
-#                     for each metric in order defined by reference sample BSON document
-#                         array of deltas relative to reference sample (delta, rle, packed compression)
-#                         <-- this decompression is expensive to do in Python
-#         bson doc containing ftdc data chunk
-#             ...
-# 
-# 
-# slicing by timestamp requires
-#     scanning bson chunk documents
-#     looking at _id start datetime (end time can be inferred to be _id start datetime of next chunk)
-#     further processing only chunks in desired timerange
-#     no decompression necessary
-# 
-# slicing by metrics requires
-#     zlib decompress each chunk bson doc (fast because uses native library code)
-#     traverse the reference document to identify the index of desired metrics
-#     copy array of deltas into output chunk (no delta, rle, packed decompression needed)
-#     zlib compress output chunk (fast)
-# 
-# This should be doable in Python because the expensive work - zlib
-# decompression and re-compression - is done in native code.
-#
-#
-# METHOD 1 decompression: two samples as bson documents (some other tools)
-#
-#     ftdc
-#        serverStatus
-#            connections
-#                available: 100
-#                inUse: 1
-#
-#     ftdc
-#        serverStatus
-#            connections
-#                available: 100
-#                inUse: 2
-#
-# METHOD 2: two samples as map from paths to arrays of values (this script (readers.py), t2/back/ftdc.go)
-#
-#     Map
-#        ftdc,severStatus,connections,available -> 100, 100
-#        ftdc,severStatus,connections,inUse -> 1, 2
-#
-# METHOD 2 is much more efficient both in space and in ease of processing
-#
-
+        print('chunk, %d keys, %d values, key 0: %s, key 0 value 0: %d' % (
+            len(keys), len(values[0]), keys[0], chunk[keys[0]][0]
+        ))

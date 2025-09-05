@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ $1 == "-h" ]; then
+if [ "$1" == "-h" ]; then
     echo -e "Usage:\n\t[SHARDLIST=] [NODELIST=] [SHARDS=] [NODES=] $(basename $0) [inputfile [outputfile]]"
     cat - << EOF
     Defaults:
@@ -41,4 +41,4 @@ else
     );
   done > $outfile
 fi
-#[ -f "$outfile" ] && explorer.exe "$outfile"
+[ -f "$outfile" ] && explorer.exe "$outfile"

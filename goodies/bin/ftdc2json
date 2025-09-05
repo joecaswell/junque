@@ -1,7 +1,8 @@
-#! /usr/bin/python
+#! /usr/bin/python3
 from __future__ import print_function
 import json
-import readers
+from bson.json_util import dumps
+import readers3 as readers
 import sys
 
 def _msgr(*s):
@@ -35,11 +36,10 @@ _msg("chunk val epoch")
 for i, chunk in enumerate(readers.read_ftdc(sys.argv[1])):
     _msgr("\x1b[2K\r %4d\r"%(i))
     for idx in range(len(chunk[('start',)])):
-        if 0 == (idx % 100):
-            _msgr("\x1b[2K\r %4d %3d %d\r"%(i,idx, chunk[('start',)][idx]))
+        _msgr("\x1b[2K\r %4d %3d %d\r"%(i,idx, chunk[('start',)][idx]))
         for key in chunk.keys():
             assign(chunk.full_ref_doc, key, chunk[key][idx])
-        json.dump(chunk.full_ref_doc, outf)
+        dumps(chunk.full_ref_doc)
         outf.write("\n")
 
 _msg("\nDone.")

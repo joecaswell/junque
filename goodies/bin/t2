@@ -3,7 +3,7 @@
 args=()
 
 curdir=`pwd`
-if [ "${curdir:0:15}" = "/Users/joe/tmp/" ]; 
+if [ "${curdir:0:15}" = "$HOME/tmp/" ]; 
 then
         echo "Setting HOME to $curdir"
         export HOME="$curdir"

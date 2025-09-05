@@ -1,37 +1,48 @@
 #!/bin/bash
 user=$1
 script=`basename $0`
+eval &>/tmp/${script}_pipe
+set -x
 [ "${script:5:4}" = "user" ] && type="users"
 [ "${script:5:2}" = "me" ] && type="user"
 [ "${script:5:3}" = "org" ] && type="orgs"
 geturl()
 {
-	echo "Clone: $1"
-	curl -n "$1" -s -v -o - 2>&1 | sed -n -e 's/^.*Link: .*<\([^>]*\)>. rel="next".*$/Next: \1/p;/"ssh_url":/s/^.*"ssh_url":.*"\([^"]*\)".*$/\1/p' | while read url; 
-  do
-		  echo "  process:(${url:0:5})$url"
-			if [ "${url:0:5}" = "Next:" ]; then
-					geturl ${url:6}
-			else
-				  dirname=`basename $url .git`
-					if [ -d $dirname ]; then
-						pushd $dirname
-                        #default to develop or master
-                        git branch -a 2>/dev/null | grep develop > /dev/null 2>&1 && git checkout develop || (git branch -a 2>/dev/null | grep master >/dev/null 2>&1 && git checkout master)
-						git pull 
-						if [ $? != 0 ]; then
-							git reset HEAD --hard
-							git stash
-							git stash drop
-							git pull
-						fi
-						popd
-					else
-				    echo "git clone $url"
-					  git clone "$url"
-				  fi
-			fi
-  done
+    echo "Clone: $1"
+    page=${2:-1}
+    echo "Page: ${page}"
+    processed=0
+    for url in $(curl -n "$1&page=${page}" -s -v -o - 2>&1 |tee /tmp/${script}_page${page} | sed -n -e 's/^.*Link: .*<\([^>]*\)>. rel="next".*$/Next: \1/p;/"ssh_url":/s/^.*"ssh_url":.*"\([^"]*\)".*$/\1/p');
+    #while read url; 
+    do
+        processed=1
+        echo "  process:(${url:0:5})$url"
+        if [ "${url:0:5}" = "Next:" ]; then
+            geturl ${url:6}
+        else
+            dirname=`basename $url .git`
+            if [ -d $dirname ]; then
+                pushd $dirname
+                #default to develop or master
+                git branch -a 2>/dev/null | grep develop > /dev/null 2>&1 && git checkout develop || (git branch -a 2>/dev/null | grep master >/dev/null 2>&1 && git checkout master)
+                git pull 
+                if [ $? != 0 ]; then
+                    git reset HEAD --hard
+                    git stash
+                    git stash drop
+                    git pull
+                fi
+                popd
+            else
+                echo "git clone $url"
+                git clone "$url"
+            fi
+        fi
+    done
+    echo "End of Page ${page}, Processed:${processed}"
+    if [ $processed = 1 ]; then
+        geturl $1 $((${page}+1))
+    fi
 }
 
 if [ -z "$user" -a "$type" != "user" ]; then

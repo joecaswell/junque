@@ -286,10 +286,10 @@ var pick = function(arr, min, max) {
 
 var mod10_check = function(number) {
     try {
-      let string = number.toString().replace(/[^0-9]/,"");
-      return (string.length > 1) && (parseInt(string) > 0) && string.split("").map(c => parseInt(c)).reverse().reduce( (sum,digit,idx) => (sum + (((idx % 2)==0) ? digit : (((digit*2) % 10) + Math.floor( digit * 2 / 10 ))))) % 10 == 0
+        let string = number.toString().replace(/[^0-9]/,"");
+        return (string.length > 1) && (parseInt(string) > 0) && string.split("").map(c => parseInt(c)).reverse().reduce( (sum,digit,idx) => (sum + (((idx % 2)==0) ? digit : (((digit*2) % 10) + Math.floor( digit * 2 / 10 ))))) % 10 == 0
     } catch (e) {
-      return false
+        return false
     }
 }
 
@@ -404,11 +404,11 @@ DBCollection.prototype.checkForLargeShardKeys = function(suffix) {
 
         var outcoll = this._shortName + suffix;
         var stat = this._db.getCollection(outcoll).stats();
-        
+
         if (stat.ok == 1) {
             return("Skipping '" + this._fullName + "': collection '" + outcoll + "' already exists in database '" + this._db + "'. Drop this collection or select a different suffix like `db." + this._shortName + ".checkForLargeShardKeys(\"othersuffix\")`.");
         }
-        
+
         eval('function map() {'
               +'shardkey = {};'
               +'var keys = ' + JSON.stringify(keys) +';'
@@ -453,7 +453,7 @@ function checkForLargeShardKeys(query,configDb) {
         var collname = c._id.substr(dot+1);
         return db.getSiblingDB(dbname).getCollection(collname).checkForLargeShardKeys()
     }
-    
+
     if (query === undefined) query = {ns:new RegExp('^' + db.toString() + '\.'),dropped:false};
     var collections = configDb.collections.find(query);
     var allresults = collections.map(checkCollection);
@@ -468,13 +468,13 @@ function getRandomInRange(from, to, fixed) {
 
 function randomPoint(lon, lat, radius) {
     return {
-       type: "Point",
-       coordinates: randomLoc(lon, lat, radius)
+        type: "Point",
+        coordinates: randomLoc(lon, lat, radius)
     }
 }
 
 function distance(frmlon, frmlat, tolon, tolat, R) {
-    
+
     R = R || 6371000;
 
     // a = sin²(Δφ/2) + cos(φ1)⋅cos(φ2)⋅sin²(Δλ/2)
@@ -503,16 +503,16 @@ function randomLoc(dlon, dlat, radius) {
     if (radius == undefined) {
         radius = earthRadius * Math.PI;
     }
-    
+
     // direction to travel from the original vector
     var b = _randomFun() * 2 * Math.PI;
     // distance to travel
     var d = _randomFun() * radius;
 
     const nlat = Math.asin( Math.sin(lat)*Math.cos(d/earthRadius) +
-                      Math.cos(lat)*Math.sin(d/earthRadius)*Math.cos(b) );
+        Math.cos(lat)*Math.sin(d/earthRadius)*Math.cos(b) );
     const nlon = lon + Math.atan2(Math.sin(b)*Math.sin(d/earthRadius)*Math.cos(lat),
-                           Math.cos(d/earthRadius)-Math.sin(lat)*Math.sin(nlat));
+        Math.cos(d/earthRadius)-Math.sin(lat)*Math.sin(nlat));
     // normalize
     const flon = (nlon + 3*Math.PI) % (2*Math.PI) - Math.PI
 
@@ -520,25 +520,25 @@ function randomLoc(dlon, dlat, radius) {
 }
 
 function randomPolygon(lon, lat, radius, npoints) {
-  if (typeof lon == "Array") {
-      npoints = radius
-      radius = lat
-      lat = lon[1]
-      lon = lon[0]
-  }
-  npoints = npoints || 4;
-  radius = radius || 1000;
-  lon = lon || 180 - (_randomFun() * 360)
-  lat = lat || 90 - (_randomFun() * 180)
+    if (typeof lon == "Array") {
+        npoints = radius
+        radius = lat
+        lat = lon[1]
+        lon = lon[0]
+    }
+    npoints = npoints || 4;
+    radius = radius || 1000;
+    lon = lon || 180 - (_randomFun() * 360)
+    lat = lat || 90 - (_randomFun() * 180)
 
-  var points=[];
-  for(var _i=0;_i<npoints-1;_i++) {
-       points.push(randomPoint(lon, lat, radius))
-  } 
+    var points=[];
+    for(var _i=0;_i<npoints-1;_i++) {
+        points.push(randomPoint(lon, lat, radius))
+    } 
 
-  points.push(points[0])
+    points.push(points[0])
 
-  return points;
+    return points;
 }
 
 function randomDateRange(from, to) {
@@ -570,9 +570,9 @@ function oplogWindow(seconds, verbose) {
     } else {
         throw Error("No entries in the oplog");
     }
- 
+
     if (limited) {
-       //ceil instead of trunc to make sure we have good ts for $lte
+        //ceil instead of trunc to make sure we have good ts for $lte
         var last = Math.ceil(newestevent.ts.getTime())+1;
         var first = last - seconds;
         cursor = db.getSiblingDB("local").oplog.rs.aggregate([{$match:{ts:{$gte:Timestamp(first,0),$lte:Timestamp(last,0)}}},{$group:{_id:null,first:{$min:"$ts"}, last:{$max:"$ts"}, count:{$sum:1}}}])
@@ -607,12 +607,12 @@ function oplogWindow(seconds, verbose) {
             if (limited) { print("Estimated size: ", oplogtimes.count, "*", oplogstats.avgObjSize, "=", estsize, "bytes");}
             print("Estimated window: ", estwindow/3600, " hours");
         }
-            return estwindow
-        } else {
-            throw Error("Oplog covers " + currentelapsed + " seconds, cannot compute window")
-        }
+        return estwindow
+    } else {
+        throw Error("Oplog covers " + currentelapsed + " seconds, cannot compute window")
+    }
 }
-    
+
 var shuffle = function(_a) {
     var _j, _x, _i;
     for (_i = _a.length - 1; _i > 0; _i--) {
@@ -625,133 +625,133 @@ var shuffle = function(_a) {
 }
 
 Object.extendedMerge = function (dst, src, deep) {
-        for (var k in src) {
-            var v = src[k];
-            if (deep && typeof(v) == "object" && v !== null) {
-                if (v.constructor === ObjectId) {  // convert ObjectId properly
-                    eval("v = " + tojson(v));
-                } else if (v.constructor === Date) {  // convert ISODate properly
-                    eval("v = " + tojson(v));
-                } else if ("floatApprox" in v) {  // convert NumberLong properly
-                    eval("v = " + tojson(v));
-                } else {
-                    var s = dst[k] || (typeof(v.length) == "number" ? [] : {})
-                    v = Object.extendedMerge(s, v, true);
-                }
+    for (var k in src) {
+        var v = src[k];
+        if (deep && typeof(v) == "object" && v !== null) {
+            if (v.constructor === ObjectId) {  // convert ObjectId properly
+                eval("v = " + tojson(v));
+            } else if (v.constructor === Date) {  // convert ISODate properly
+                eval("v = " + tojson(v));
+            } else if ("floatApprox" in v) {  // convert NumberLong properly
+                eval("v = " + tojson(v));
+            } else {
+                var s = dst[k] || (typeof(v.length) == "number" ? [] : {})
+                v = Object.extendedMerge(s, v, true);
             }
-            dst[k] = v;
         }
-        return dst;
+        dst[k] = v;
     }
+    return dst;
+}
 
 Object.defineProperty(Object.prototype,"project",{
     configurable: true,
     enumerable: false,
     value: function(projection){
-    if (typeof projection !== "object") {
-        throw Error('Cannot convert ' + typeof projection + ' to object');
-    }
-    //avoid modifying the orignal while truncating deep recursion
-    var obj = Object.extendedMerge({},this,true);
-    var res={};
-    var mergeFields = function(dest, src) {
-        if (src !== undefined ) {
-            if (src.name != "" && src.o !== undefined) { 
-                if (typeof src.point.valueOf == "function") {
-                    src.prev[src.name] = src.o.valueOf(); 
-                } else {
-                    src.prev[field.name] = src.o;
+        if (typeof projection !== "object") {
+            throw Error('Cannot convert ' + typeof projection + ' to object');
+        }
+        //avoid modifying the orignal while truncating deep recursion
+        var obj = Object.extendedMerge({},this,true);
+        var res={};
+        var mergeFields = function(dest, src) {
+            if (src !== undefined ) {
+                if (src.name != "" && src.o !== undefined) { 
+                    if (typeof src.point.valueOf == "function") {
+                        src.prev[src.name] = src.o.valueOf(); 
+                    } else {
+                        src.prev[field.name] = src.o;
+                    }
                 }
+                return Object.extendedMerge(dest, src.result, true);
+            } else {
+                return {};
             }
-            return Object.extendedMerge(dest, src.result, true);
-        } else {
-            return {};
         }
-    }
-    var projectKeyReduce = function(obj, point, prev, name, fields){
-        //print("projectKeyReduce(obj:",tojson(obj),", point:",tojson(point),", prev:",tojson(prev),", name:",tojson( name),",fields: ",tojson(fields))
-        if (fields === undefined && point !== undefined) {
-            var tmp = {}
-            var localFields = point.slice();
-            var result = projectKeyReduce(obj, tmp, undefined, undefined, localFields); 
-            //print("result:",tojson(result));
-            if (result) result.result = tmp;
-            return result;
-        }
-        if (fields.length == 0 || obj === undefined) {
-            //printjsononeline({intermediate:{o:obj,prev:prev,point:point,name:name}})
-            return {o:obj, prev:prev, point:point, name:name}
-        }
-        var b = fields.shift();
-        //print ("check",tojson(obj),"for",b)
-        if (obj !== null && obj.hasOwnProperty(b)) {
-            if (typeof obj[b] === "object"){
-                if (obj[b] === null) {
+        var projectKeyReduce = function(obj, point, prev, name, fields){
+            //print("projectKeyReduce(obj:",tojson(obj),", point:",tojson(point),", prev:",tojson(prev),", name:",tojson( name),",fields: ",tojson(fields))
+            if (fields === undefined && point !== undefined) {
+                var tmp = {}
+                var localFields = point.slice();
+                var result = projectKeyReduce(obj, tmp, undefined, undefined, localFields); 
+                //print("result:",tojson(result));
+                if (result) result.result = tmp;
+                return result;
+            }
+            if (fields.length == 0 || obj === undefined) {
+                //printjsononeline({intermediate:{o:obj,prev:prev,point:point,name:name}})
+                return {o:obj, prev:prev, point:point, name:name}
+            }
+            var b = fields.shift();
+            //print ("check",tojson(obj),"for",b)
+            if (obj !== null && obj.hasOwnProperty(b)) {
+                if (typeof obj[b] === "object"){
+                    if (obj[b] === null) {
+                        point[b] = obj[b];
+                        name = "";
+                        obj = {} 
+                    } else {
+                        prev = point;
+                        name = b;
+                        var blank = (Array.isArray(obj[b])?[]:{}); 
+                        if (Array.isArray(point)) {
+                            name = point.length;
+                            point.push(blank);
+                            point = point[name];
+                        } else {
+                            //print(b,"is Object");
+                            point[b] = blank;
+                            point = point[b];
+                        }
+                        obj = obj[b];
+                    }
+                } else {
+                    //print("Found:",obj[b]);
                     point[b] = obj[b];
                     name = "";
-                    obj = {} 
-                } else {
-                    prev = point;
-                    name = b;
-                    var blank = (Array.isArray(obj[b])?[]:{}); 
-                    if (Array.isArray(point)) {
-                        name = point.length;
-                        point.push(blank);
-                        point = point[name];
-                    } else {
-                        //print(b,"is Object");
-                        point[b] = blank;
-                        point = point[b];
+                    obj = undefined;
+                }
+                return projectKeyReduce(obj, point, prev, name, fields)
+            } else if (b == "*") {
+                for (var propkey in obj) {
+                    if (obj.hasOwnProperty.call(obj, propkey)) {
+                        //print("Merge",propkey);
+                        var found = projectKeyReduce(obj[propkey], fields);
+                        //print("Found:",tojson(found));
+                        if (found)
+                            if (Object.keys(found.result).length !== 0 || found.result.constructor !== Object) {
+                                var tmpres = {};
+                                mergeFields(tmpres, found)
+                                //print("Set ",propkey,"to",tojson(tmpres));
+                                point[propkey]=tmpres;
+                            }
                     }
-                    obj = obj[b];
                 }
+                //print("Point:",tojson(point));
+                //return projectKeyReduce(undefined, point, prev, name, [])
+                return projectKeyReduce(undefined, point, prev, name, [])
             } else {
-                //print("Found:",obj[b]);
-                point[b] = obj[b];
-                name = "";
-                obj = undefined;
+                // property not found
+                return undefined;
             }
-            return projectKeyReduce(obj, point, prev, name, fields)
-        } else if (b == "*") {
-            for (var propkey in obj) {
-                if (obj.hasOwnProperty.call(obj, propkey)) {
-                   //print("Merge",propkey);
-                   var found = projectKeyReduce(obj[propkey], fields);
-                   //print("Found:",tojson(found));
-                   if (found)
-                       if (Object.keys(found.result).length !== 0 || found.result.constructor !== Object) {
-                          var tmpres = {};
-                          mergeFields(tmpres, found)
-                          //print("Set ",propkey,"to",tojson(tmpres));
-                          point[propkey]=tmpres;
-                       }
-                }
-            }
-            //print("Point:",tojson(point));
-            //return projectKeyReduce(undefined, point, prev, name, [])
-            return projectKeyReduce(undefined, point, prev, name, [])
-        } else {
-            // property not found
-            return undefined;
         }
-    }
 
-    Object.keys(projection).forEach( function(k) {
-        //truish to project-in
-        if (!projection[k]) {
-            throw Error('project out not yet supported');
-        } else {
-            var matched = projectKeyReduce(obj, k.split("."));
-            //print("Matched: ", tojson(matched));
-            mergeFields(res, matched)
-        }
-    });
-    //print("returning:",tojsononeline(res))
-    return res;
-}})
+        Object.keys(projection).forEach( function(k) {
+            //truish to project-in
+            if (!projection[k]) {
+                throw Error('project out not yet supported');
+            } else {
+                var matched = projectKeyReduce(obj, k.split("."));
+                //print("Matched: ", tojson(matched));
+                mergeFields(res, matched)
+            }
+        });
+        //print("returning:",tojsononeline(res))
+        return res;
+    }})
 /*
-// pass db method as a string or a function with 1 argument
-// function will be passed the db object, eachDB will return the value returned in an array
+    // pass db method as a string or a function with 1 argument
+    // function will be passed the db object, eachDB will return the value returned in an array
 DB.prototype.eachDB = function(lambdaOrMethod) {
     var _dbs = this.adminCommand("listDatabases").databases;
     var _thisdb = this
@@ -797,345 +797,386 @@ function happy(n,chain) {
 
 function deepDiff(a, b, tag=null) {
     let diffmsg = {}
-        if (a === b) return {}
+    if (a === b) return {}
 
-        if (a == null || b == null ||
-            typeof a != "object" ||
-            typeof b != "object"){
-          return {a:a,b:b}
-        }
+    if (a == null || b == null ||
+        typeof a != "object" ||
+        typeof b != "object"){
+        return {a:a,b:b}
+    }
 
     let keya = Object.keys(a)
-        let keyb = Object.keys(b)
+    let keyb = Object.keys(b)
 
-        for (let key of keya) {
-            if (keyb.includes(key)) {
-                    let diff = deepDiff(a[key],b[key], tag + "." + key)
-                    if (Object.keys(diff).length > 0 ) {
-                       diffmsg[key] = diff
-                    }
-                } else {
-                diffmsg[key] = {a:a[key],b:undefined}
-                }
-        }
-        for (let key of keyb) {
-            if (!keya.includes(key)) {
-            diffmsg[key] = {a:undefined,b:b[key]}
+    for (let key of keya) {
+        if (keyb.includes(key)) {
+            let diff = deepDiff(a[key],b[key], tag + "." + key)
+            if (Object.keys(diff).length > 0 ) {
+                diffmsg[key] = diff
             }
+        } else {
+            diffmsg[key] = {a:a[key],b:undefined}
         }
+    }
+    for (let key of keyb) {
+        if (!keya.includes(key)) {
+            diffmsg[key] = {a:undefined,b:b[key]}
+        }
+    }
     return diffmsg
 }
 
 function connectionData(dbname,collname){
-	tag=65;
-	sw=String.fromCharCode(tag);
-	c=db.getSiblingDB(dbname).getCollection(collname);
-	branches=c.find({ id: 20698 }, { t: 1, _id: 0 }).toArray().map(
-	  function (o) {
-	     return {case:{$lt:["$t",o.t]},then:String.fromCharCode(tag++)};
-	});
-	if (branches.length > 0) {
-	   sw={'$switch':{'branches':branches,default:String.fromCharCode(tag)}};
-	}
-	return c.aggregate([
-	  {$match:{id:{$in:[22943,22944,22989,51800,51803,20429,20250,20883,5286306]}}},
-      {$sort: {t:1}},
-	  {$addFields:{conn:{$toString:{$ifNull:["$attr.connectionId",{$substr:["$ctx",4,-1]}]}}}},
-	  {$group:{
-	      _id:{connection:"$conn",restart:sw},
-	      reslen:{$sum:"$attr.reslen"},
-	      hasStart:{$sum:{$cond:[{$eq:["$id",22943]},1,0]}},
-	      hasEnd:{$sum:{$cond:[{$eq:["$id",22944]},1,0]}},
-	      hasMetadata:{$sum:{$cond:[{$eq:["$id",51800]},1,0]}},
-	      first:{$min:"$t"},
-	      last:{$max:"$t"},
-	      count:{$sum:1},
-	      auth:{$addToSet:{$cond:[{$in:["$id",[5286306,20429,20250]]},{success:{$in:["$id",[5286306,20250]]},principal:{$ifNull:["$attr.principalName","$attr.user"]},db:{$ifNull:["$attr.authenticationDatabase","$attr.db"]}},"$$REMOVE"]}},
-	      remote:{$addToSet:"$attr.remote"},
-	      app:{$addToSet:"$attr.doc.application.name"},
-	      driver:{$addToSet:"$attr.doc.driver"},
-	      os:{$addToSet:"$attr.doc.os"},
-          errors:{$addToSet:"$attr.error.errmsg"},
-          disconnect:{$addToSet:{$cond:[{$eq:["$id",20883]},"$msg",undefined]}}
-      }},
-      {$addFields:{
-            errors:{$concatArrays:["$errors",{$filter:{input:"$disconnect",cond:{$ne:["$$this",null]}}}]}
-      }},
-      {$project:{disconnect:0}},
-      {$sort:{"_id.restart":1,"_id.connection":1,"first":1}}
-	])
-}
+    tag=65;
+    sw=String.fromCharCode(tag);
+    c=db.getSiblingDB(dbname).getCollection(collname);
+    branches=c.find({ id: 20698 }, { t: 1, _id: 0 }).toArray().map(
+        function (o) {
+            return {case:{$lt:["$t",o.t]},then:String.fromCharCode(tag++)};
+        });
+    if (branches.length > 0) {
+        sw={'$switch':{'branches':branches,default:String.fromCharCode(tag)}};
+    }
+    return c.aggregate([
+        {$match:{$or:[
+//            {id:{$in:[22943,22944,22989,51800,51803,20429,20250,20883,5286306,5286307]}},
+            {msg:{$in:["Successfully authenticated","Connection accepted","Connection ended","Failed to authenticate","Slow query","Client metadata","Interrupted operation as its client disconnected"]}}
+        ]}},
+        {$sort: {t:1}},
+        {$addFields:{conn:{$toString:{$ifNull:["$attr.connectionId",{$substr:["$ctx",4,-1]}]}}}},
+        {$group:{
+            _id:{connection:"$conn",restart:sw},
+            reslen:{$sum:"$attr.reslen"},
+            hasStart:{$sum:{$cond:[{$or:[{$eq:["$id",22943]},{$eq:["$msg","Connection accepted"]}]},1,0]}},
+            hasEnd:{$sum:{$cond:[{$or:[{$eq:["$msg","Connection accepted"]},{$eq:["$id",22944]}]},1,0]}},
+            hasMetadata:{$sum:{$cond:[{$eq:["$id",51800]},1,0]}},
+            first:{$min:"$t"},
+            last:{$max:"$t"},
+            count:{$sum:1},
+            auth:{$addToSet:{$cond:[{$or:[{$in:["$msg",["Successfully authenticated","Failed to authenticate"]]},{$or:[{$eq:["$msg","Successfully authenticated"]},{$in:["$id",[5286306,5286307,20429,20250]]}]}]},{success:{$in:["$id",[5286306,20250]]},principal:{$ifNull:["$attr.principalName","$attr.user"]},db:{$ifNull:["$attr.authenticationDatabase","$attr.db"]}},"$$REMOVE"]}},
+                remote:{$addToSet:"$attr.remote"},
+                app:{$addToSet:"$attr.doc.application.name"},
+                driver:{$addToSet:"$attr.doc.driver"},
+                os:{$addToSet:"$attr.doc.os"},
+                errors:{$addToSet:"$attr.error.errmsg"},
+                disconnect:{$addToSet:{$cond:[{$or:[{$eq:["$msg","Connection ended"]},{$eq:["$id",20883]}]},"$msg",undefined]}}
+            }},
+            {$addFields:{
+                errors:{$concatArrays:["$errors",{$filter:{input:"$disconnect",cond:{$ne:["$$this",null]}}}]}
+            }},
+            {$project:{disconnect:0}},
+            {$sort:{"_id.restart":1,"_id.connection":1,"first":1}}
+        ])
+        }
 
-function connectionCSVOrig(filename, dbname, collname) {
-  if (filename === undefined) {
-      print("Usage:\n\tconnection(<filename>,<dbname>,<collection name>)")
-      return
-  }
-  require("fs");
-  return fs.writeFileSync(filename,
-               ['"Restart","Connection","Remote","Connect","Disconnect","Duration","Authentication","Driver Name","Driver Version","Application","OS Type","OS Name","Version","Arch","Errors"'].concat(
-               connectionData(dbname,collname).toArray().map(o=>{
-                   return [
-                      o._id.restart,
-                      o._id.connection,
-                      o.remote[0],
-                      o.hasStart?o.first.toISOString():"",
-                      o.hasEnd?o.last.toISOString():"",
-                      (o.hasStart && o.hasEnd)?(o.last - o.first):"",
-                      (o.auth.length>0)?o.auth.map(e=>e.principal + "@" + e.db + " " +e.success).join("/").replace(/,/g,""):"",
-                      o.driver[0]?.name?o.driver[0].name:"",
-                      o.driver[0]?.version?o.driver[0].version:"",
-                      o.app[0]?o.app[0]:"",
-                      o.os[0]?.type?o.os[0].type:"",
-                      o.os[0]?.name?o.os[0].name:"",
-                      o.os[0]?.version?o.os[0].version:"",
-                      o.os[0]?.architecture?o.os[0].architecture:"",
-                      o.errors.join(",").replace(/,/g," ")
-                ].map(o=>JSON.stringify(o)).join(",")})).join("\n")
- )
-}
+        function connectionCSVOrig(filename, dbname, collname) {
+            if (filename === undefined) {
+                print("Usage:\n\tconnection(<filename>,<dbname>,<collection name>)")
+                return
+            }
+            require("fs");
+            return fs.writeFileSync(filename,
+                ['"Restart","Connection","Remote","Connect","Disconnect","Duration","Authentication","Driver Name","Driver Version","Application","OS Type","OS Name","Version","Arch","Errors"'].concat(
+                    connectionData(dbname,collname).toArray().map(o=>{
+                        return [
+                            o._id.restart,
+                            o._id.connection,
+                            o.remote[0],
+                            o.hasStart?o.first.toISOString():"",
+                            o.hasEnd?o.last.toISOString():"",
+                            (o.hasStart && o.hasEnd)?(o.last - o.first):"",
+                            (o.auth.length>0)?o.auth.map(e=>e.principal + "@" + e.db + " " +e.success).join("/").replace(/,/g,""):"",
+                            o.driver[0]?.name?o.driver[0].name:"",
+                            o.driver[0]?.version?o.driver[0].version:"",
+                            o.app[0]?o.app[0]:"",
+                            o.os[0]?.type?o.os[0].type:"",
+                            o.os[0]?.name?o.os[0].name:"",
+                            o.os[0]?.version?o.os[0].version:"",
+                            o.os[0]?.architecture?o.os[0].architecture:"",
+                            o.errors.join(",").replace(/,/g," ")
+                        ].map(o=>JSON.stringify(o)).join(",")})).join("\n")
+            )
+        }
 
 
-async function connectionCSV(filename, dbname, collname) {
-  if (filename === undefined) {
-      print("Usage:\n\tconnection(<filename>,<dbname>,<collection name>)")
-      return
-  }
-  require("fs");
- 
-  var handle = await fs.promises.open(filename,"w");
-  if (!handle) {
-      throw new Error("Failed to open file "+filename);
-  }
+        async function connectionCSV(filename, dbname, collname) {
+            if (filename === undefined) {
+                print("Usage:\n\tconnection(<filename>,<dbname>,<collection name>)")
+                return
+            }
+            require("fs");
 
-  handle.write('"Restart","Connection","Remote","Connect","Disconnect","Duration","Authentication","Driver Name","Driver Version","Application","OS Type","OS Name","Version","Arch","Errors"');
-  handle.write("\n");
-  var cursor = connectionData(dbname,collname)
-  while (cursor.hasNext()) {
-      obj = cursor.next();
-      var linedata = [
-                      obj._id.restart,
-                      obj._id.connection,
-                      obj.remote[0],
-                      obj.hasStart?obj.first.toISOString():"",
-                      obj.hasEnd?obj.last.toISOString():"",
-                      (obj.hasStart && obj.hasEnd)?(obj.last - obj.first):"",
-                      (obj.auth.length>0)?obj.auth.map(e=>e.principal + "@" + e.db + " " +e.success).join("/").replace(/,/g,""):"",
-                      obj.driver[0]?.name?obj.driver[0].name:"",
-                      obj.driver[0]?.version?obj.driver[0].version:"",
-                      obj.app[0]?obj.app[0]:"",
-                      obj.os[0]?.type?obj.os[0].type:"",
-                      obj.os[0]?.name?obj.os[0].name:"",
-                      obj.os[0]?.version?obj.os[0].version:"",
-                      obj.os[0]?.architecture?obj.os[0].architecture:"",
-                      obj.errors.join(",").replace(/,/g," ")
+            var handle = await fs.promises.open(filename,"w");
+            if (!handle) {
+                throw new Error("Failed to open file "+filename);
+            }
+
+            handle.write('"Restart","Connection","Remote","Connect","Disconnect","Duration","Authentication","Driver Name","Driver Version","Application","OS Type","OS Name","Version","Arch","Errors"');
+            handle.write("\n");
+            var cursor = connectionData(dbname,collname)
+            while (cursor.hasNext()) {
+                obj = cursor.next();
+                var linedata = [
+                    obj._id.restart,
+                    obj._id.connection,
+                    obj.remote[0],
+                    obj.hasStart?obj.first.toISOString():"",
+                    obj.hasEnd?obj.last.toISOString():"",
+                    (obj.hasStart && obj.hasEnd)?(obj.last - obj.first):"",
+                    (obj.auth.length>0)?obj.auth.map(e=>e.principal + "@" + e.db + " " +e.success).join("/").replace(/,/g,""):"",
+                    obj.driver[0]?.name?obj.driver[0].name:"",
+                    obj.driver[0]?.version?obj.driver[0].version:"",
+                    obj.app[0]?obj.app[0]:"",
+                    obj.os[0]?.type?obj.os[0].type:"",
+                    obj.os[0]?.name?obj.os[0].name:"",
+                    obj.os[0]?.version?obj.os[0].version:"",
+                    obj.os[0]?.architecture?obj.os[0].architecture:"",
+                    obj.errors.join(",").replace(/,/g," ")
                 ];
-      handle.write(linedata.map(ln => JSON.stringify(ln)).join(",") + "\n");
-  }
-  await handle.sync();
-  await handle.close();
-}
-
-function unhorkLong(size) { 
-    let low = BigInt(size.low < 0 ? Math.pow(2, 32) + size.low : size.low); 
-    let high = BigInt(size.high < 0 ? Math.pow(2, 32) + size.high : size.high); 
-    let negative = (size.unsigned === false && size.high < 0); 
-    let num=BigInt(Math.pow(2, 32)) * high + low; 
-    if(negative){num = BigInt(-1*Math.pow(2,64)) + num}; 
-    return num
-}
-
-// add toDate method to Timestamps
-Timestamp.prototype.toDate = function() { return new Date(this.getHighBitsUnsigned()*1000)}
-
-function waitForCheckpoint(limit) {
-    if (!limit) limit = 3600000; //default to wait up to an hour for a checkpoint
-    let start=new Date();
-    let curgen = db.serverStatus().wiredTiger.transaction['transaction checkpoint generation'];
-    let res = false;
-    while ((new Date() - start) < limit) {
-        if (db.serverStatus().wiredTiger.transaction['transaction checkpoint generation'] > curgen) return true;
-        sleep(500);
-    }
-    return false
-}
-
-function decodeResumeToken(token, debug=false) {
-
-    function Reader(hexstring) {
-
-        this.buff = new Buffer.from(hexstring,"hex");
-
-        this.debuglog = function(msg) {
-            if (debug) {
-                if (this.buff) {
-                    console.log(msg, this.buff.hexSlice());
-                }
+                handle.write(linedata.map(ln => JSON.stringify(ln)).join(",") + "\n");
             }
+            await handle.sync();
+            await handle.close();
         }
 
-        this.readers = {
-            10: "readMinKey",
-            20: "readNull",
-            41: "readZero",
-            43: "readUInt8",
-            44: "readUInt16",
-            46: "readUInt32",
-            60: "readCString",
-            70: "readObject",
-            90: "readBinData",
-            100: "readObjectId",
-            110: "readBoolFalse",
-            111: "readBoolTrue",
-            130: "readTimestamp"
+        function unhorkLong(size) { 
+            let low = BigInt(size.low < 0 ? Math.pow(2, 32) + size.low : size.low); 
+            let high = BigInt(size.high < 0 ? Math.pow(2, 32) + size.high : size.high); 
+            let negative = (size.unsigned === false && size.high < 0); 
+            let num=BigInt(Math.pow(2, 32)) * high + low; 
+            if(negative){num = BigInt(-1*Math.pow(2,64)) + num}; 
+            return num
         }
 
-        this.readMinKey = function() {
-            this.debuglog("readMinKey");
-            return MinKey();
+        // add toDate method to Timestamps
+        Timestamp.prototype.toDate = function() { return new Date(this.getHighBitsUnsigned()*1000)}
+
+        function waitForCheckpoint(limit) {
+            if (!limit) limit = 3600000; //default to wait up to an hour for a checkpoint
+            let start=new Date();
+            let curgen = db.serverStatus().wiredTiger.transaction['transaction checkpoint generation'];
+            let res = false;
+            while ((new Date() - start) < limit) {
+                if (db.serverStatus().wiredTiger.transaction['transaction checkpoint generation'] > curgen) return true;
+                sleep(500);
+            }
+            return false
         }
 
-        this.readNull = function() {
-            this.debuglog("readNull");
-            return null;
-        }
+        function decodeResumeToken(token, debug=false) {
 
-        this.readZero = function() {
-            this.debuglog("readZero");
-            return 0;
-        }
+            function Reader(hexstring) {
 
-        this.readUInt8 = function() {
-            this.debuglog("readUInt8");
-            let res = this.buff.readUInt8();
-            this.buff = this.buff.subarray(1);
-            this.debuglog(res);
-            return res
-        }
+                this.buff = new Buffer.from(hexstring,"hex");
 
-        this.readUInt16 = function() {
-            this.debuglog("readUInt16");
-            let res = this.buff.readUInt16BE();
-            this.buff = this.buff.subarray(2);
-            this.debuglog(res);
-            return res
-        }
-
-        this.readUInt32 = function() {
-            this.debuglog("readUInt32");
-            let res = this.buff.readUInt32BE();
-            this.buff = this.buff.subarray(4);
-            this.debuglog(res);
-            return res
-        }
-
-        this.readCString = function() {
-            this.debuglog("readCString");
-            let res = ""
-            if (this.buff.length > 0 && this.buff[0] != 0) {
-                if ((i=this.buff.indexOf(0)) > -1) {
-                    if (i > 0) {
-                        res = this.buff.subarray(0,i).toString();
+                this.debuglog = function(msg) {
+                    if (debug) {
+                        if (this.buff) {
+                            console.log(msg, this.buff.hexSlice());
+                        }
                     }
-                    this.buff = this.buff.subarray(i+1);
+                }
+
+                this.readers = {
+                    10: "readMinKey",
+                    20: "readNull",
+                    41: "readZero",
+                    43: "readUInt8",
+                    44: "readUInt16",
+                    46: "readUInt32",
+                    60: "readCString",
+                    70: "readObject",
+                    90: "readBinData",
+                    100: "readObjectId",
+                    110: "readBoolFalse",
+                    111: "readBoolTrue",
+                    130: "readTimestamp"
+                }
+
+                this.readMinKey = function() {
+                    this.debuglog("readMinKey");
+                    return MinKey();
+                }
+
+                this.readNull = function() {
+                    this.debuglog("readNull");
+                    return null;
+                }
+
+                this.readZero = function() {
+                    this.debuglog("readZero");
+                    return 0;
+                }
+
+                this.readUInt8 = function() {
+                    this.debuglog("readUInt8");
+                    let res = this.buff.readUInt8();
+                    this.buff = this.buff.subarray(1);
+                    this.debuglog(res);
+                    return res
+                }
+
+                this.readUInt16 = function() {
+                    this.debuglog("readUInt16");
+                    let res = this.buff.readUInt16BE();
+                    this.buff = this.buff.subarray(2);
+                    this.debuglog(res);
+                    return res
+                }
+
+                this.readUInt32 = function() {
+                    this.debuglog("readUInt32");
+                    let res = this.buff.readUInt32BE();
+                    this.buff = this.buff.subarray(4);
+                    this.debuglog(res);
+                    return res
+                }
+
+                this.readCString = function() {
+                    this.debuglog("readCString");
+                    let res = ""
+                    if (this.buff.length > 0 && this.buff[0] != 0) {
+                        if ((i=this.buff.indexOf(0)) > -1) {
+                            if (i > 0) {
+                                res = this.buff.subarray(0,i).toString();
+                            }
+                            this.buff = this.buff.subarray(i+1);
+                        }
+                    }
+                    this.debuglog(res);
+                    return res
+                }
+
+                this.readObject = function() {
+                    this.debuglog("readObject");
+                    let res = {}
+                    let type = 1;
+                    do {
+                        type = this.readUInt8();
+                        this.debuglog("type:" + type);
+                        if (type != 0) {
+                            fieldname = this.readCString();
+                            res[fieldname] = this.readNext();
+                            this.debuglog("{" + fieldname + ": " + res[fieldname] + "}")
+                        }
+                    } while (type != 0);
+                    this.debuglog(res);
+                    return res
+                }
+
+                this.readBinData = function(){
+                    this.debuglog("readBinData");
+                    let size = this.readUInt8();
+                    let type = this.readUInt8();
+                    let data = this.buff.subarray(0,size);
+                    this.buff = this.buff.subarray(size);
+                    let res = new BinData(type, data.base64Slice());
+                    this.debuglog(res);
+                    return res;
+
+                }
+
+                this.readObjectId = function() {
+                    this.debuglog("readObjectId");
+                    let oid = this.buff.subarray(0,12);
+                    this.buff = this.buff.subarray(12);
+                    this.debuglog(oid);
+                    return new ObjectId(oid);
+                }
+
+                this.readBoolFalse = function() {
+                    this.debuglog("readBoolFalse");
+                    return false;
+                }
+
+                this.readBoolTrue = function() {
+                    this.debuglog("readBoolTrue");
+                    return true;
+                }
+
+                this.readTimestamp = function() {
+                    this.debuglog("readTimestamp");
+                    let ts = this.readUInt32();
+                    let cnt = this.readUInt32();
+                    let res = new Timestamp(ts,cnt);
+                    this.debuglog(res);
+                    return res
+                }
+
+                this.readNext = function() {
+                    let type = this.readUInt8();
+                    let fun = this.readers[type];
+                    this.debuglog("readNext", fun.name);
+                    if (fun && this[fun]) {
+                        let res = this[fun]();
+                        return res;
+                    } else {
+                        throw("Unknown type " + type);
+                    }
+                }
+
+                this.readArray = function() {
+                    this.debuglog("readArray");
+                    let result = []
+                    while (this.buff.length > 0 && this.buff[0] != 4) {
+                        result.push(this.readNext());
+                    } 
+                    this.debuglog(result);
+                    return result
                 }
             }
-            this.debuglog(res);
-            return res
+
+            let reader = new Reader(token);
+            return reader.readArray();
         }
 
-        this.readObject = function() {
-            this.debuglog("readObject");
-            let res = {}
-            let type = 1;
+        function resumeTokenTimestamp(token) {
+            if (!token) throw("No resume token provided")
+            let working = token;
+            if (token.resumeAfter) { working = token.resumeAfter._data; }
+            if (token._data) { working = token._data }
+            if (typeof working != "string") throw("Expected string resume token");
+            let tag = working.substring(0,2);
+            if (tag != "82") throw("Invalid resume token");
+            let epoch = parseInt(working.substring(2,10),16);
+            let inc = parseInt(working.substring(10,18),16);
+            return new Timestamp(epoch, inc);
+        } 
+
+        function doAwait(promise) {
+            async function innerFun(promisedop,res) { 
+                if (typeof promisedop._cursor.explain == "function") {
+                    promisedop = promisedop._cursor.explain();
+                }
+                let p = await promisedop; 
+                res.value=p; 
+                res.done=true
+            }; 
+            let result={ value: null, done: false }; 
+            innerFun(promise,result); 
+            while(result.done == false){
+                sleep(1)
+            }; 
+            return result.value 
+        }
+
+        // getMethods adapted from https://stackoverflow.com/questions/2257993/how-to-display-all-methods-of-an-object
+        function getMethods(obj) {
+            const methods = new Set();
             do {
-                type = this.readUInt8();
-                this.debuglog("type:" + type);
-                if (type != 0) {
-                    fieldname = this.readCString();
-                    res[fieldname] = this.readNext();
-                    this.debuglog("{" + fieldname + ": " + res[fieldname] + "}")
+                for (const prop of Object.getOwnPropertyNames(obj)) {
+                    try {
+                        if (obj[prop] instanceof Function 
+                            || typeof obj[prop] === "function"
+                            || (Object.getOwnPropertyDescriptor(obj, prop) || {}).get) {
+                            methods.add(prop);
+                        }
+                    } catch(e) {
+                        print(" -","warning: ",e.message);
+                    }
                 }
-            } while (type != 0);
-            this.debuglog(res);
-            return res
+                obj = Object.getPrototypeOf(obj);
+            } while (obj !== null && obj !== Object.prototype)
+
+            return [...methods].filter(m => !(m == "constructor" || m.match(/^__/))) ;
         }
-
-        this.readBinData = function(){
-            this.debuglog("readBinData");
-            let size = this.readUInt8();
-            let type = this.readUInt8();
-            let data = this.buff.subarray(0,size);
-            this.buff = this.buff.subarray(size);
-            let res = new BinData(type, data.base64Slice());
-            this.debuglog(res);
-            return res;
-
-        }
-
-        this.readObjectId = function() {
-            this.debuglog("readObjectId");
-            let oid = this.buff.subarray(0,12);
-            this.buff = this.buff.subarray(12);
-            this.debuglog(oid);
-            return new ObjectId(oid);
-        }
-
-        this.readBoolFalse = function() {
-            this.debuglog("readBoolFalse");
-            return false;
-        }
-
-        this.readBoolTrue = function() {
-            this.debuglog("readBoolTrue");
-            return true;
-        }
-
-        this.readTimestamp = function() {
-            this.debuglog("readTimestamp");
-            let ts = this.readUInt32();
-            let cnt = this.readUInt32();
-            let res = new Timestamp(ts,cnt);
-            this.debuglog(res);
-            return res
-        }
-
-        this.readNext = function() {
-            let type = this.readUInt8();
-            let fun = this.readers[type];
-            this.debuglog("readNext", fun.name);
-            if (fun && this[fun]) {
-                let res = this[fun]();
-                return res;
-            } else {
-                throw("Unknown type " + type);
-            }
-        }
-
-        this.readArray = function() {
-            this.debuglog("readArray");
-            let result = []
-            while (this.buff.length > 0 && this.buff[0] != 4) {
-                result.push(this.readNext());
-            } 
-            this.debuglog(result);
-            return result
-        }
-    }
-
-    let reader = new Reader(token);
-    return reader.readArray();
-}
-
-function resumeTokenTimestamp(token) {
-    if (!token) throw("No resume token provided")
-    let working = token;
-    if (token.resumeAfter) { working = token.resumeAfter._data; }
-    if (token._data) { working = token._data }
-    if (typeof working != "string") throw("Expected string resume token");
-    let tag = working.substring(0,2);
-    if (tag != "82") throw("Invalid resume token");
-    let epoch = parseInt(working.substring(2,10),16);
-    let inc = parseInt(working.substring(10,18),16);
-    return new Timestamp(epoch, inc);
-} 

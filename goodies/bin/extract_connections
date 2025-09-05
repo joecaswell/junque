@@ -2,14 +2,14 @@
 awk 'function dateToSec(dt){
  sub(/\.[0-9]{1,3}/,"",dt);
  sub(/Z$/,"-0000",dt);
- cmd="date -jf %Y-%m-%dT%H:%M:%S%z " dt " +%s";
+ cmd="date +%s -d " dt;
  cmd | getline seconds; 
- close cmd; 
+ close(cmd); 
  return seconds
 }
 function dateToMs(dt){
  sec=dateToSec(dt);
- sub("^[^\.]*.","",dt);
+ sub("^[^.]*.","",dt);
  sub("[^0-9].*$","",dt);
  millis=sec dt;
  return millis

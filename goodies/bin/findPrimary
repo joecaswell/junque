@@ -20,12 +20,12 @@ while [ $# -gt 0 ]; do
           printf "\x1f\x8b\x08\x00\x00\x00\x00\x00"; 
           head -n1  |\
           LC_ALL=c sed -e 's/^.*\$binary"\(:{"base64":"\)*//;s/".*$//' |\
-          base64 -D |\
+          base64 -d |\
           dd bs=1 skip=4 2>/dev/null
         ) |\
-           gzip -dc |\
+           gzip -dc 2>/dev/null |\
            bsondump --quiet --pretty |\
-           grep -o "\"primary\": *\".*\"" 
+           grep -o "\"primary\": *\".*\"" || echo ""
      else
          if [ $many -eq 0 ]; then echo ""; fi
      fi

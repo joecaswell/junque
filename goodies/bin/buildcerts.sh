@@ -10,6 +10,7 @@ do
 done
 for c in *.pem
 do
-    echo $c
+    set -x
     openssl verify -CAfile ca.crt $c
+    set +x
 done
