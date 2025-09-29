@@ -271,13 +271,14 @@ var pick = function(arr, min, max) {
     if (max === undefined) max = min;
     if (max === undefined) max = 1;
     if (max < min) max = min
-    if (max == 1) {
+    if (max == 1 && min == undefined) {
         return arr[Math.floor(_randomFun()*arr.length)];
     } else {
         var ret = [];
         var len = arr.length;
-        while (max > 0) {
-            max -= 1;
+        var cnt = getRandomInRange(min,max,0)
+        while (cnt > 0) {
+            cnt -= 1;
             ret.push(arr[Math.floor(_randomFun()*len)]);
         }
         return ret;

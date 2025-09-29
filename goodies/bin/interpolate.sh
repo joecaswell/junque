@@ -20,6 +20,10 @@ if [ ! -f "$infile" ]; then
     exit;
 fi
 
+if [ ! $(grep '$shard' $infile) ];
+then
+    sed -i 's/shard-[0-9]\{2,2\}-[0-9]\{2,2\}/shard-${shard}-${node}/g' $infile
+fi
 
 if [ -z "$NODELIST" ];
 then
