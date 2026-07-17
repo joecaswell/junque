@@ -576,8 +576,13 @@ function randomPolygon(lon, lat, radius, npoints) {
 }
 
 function randomDateRange(from, to) {
-    var range = to.valueOf() - from.valueOf()
-    var newdate = new Date(from.valueOf() + Math.trunc(_randomFun() * range))
+    var range = to.valueOf() - from.valueOf();
+    var diff = -1;
+    var newdate;
+    while((diff < 0) || (newdate < from)) { 
+        diff=Math.trunc(_randomFun() * range); 
+        newdate = new Date(from.valueOf() + diff);
+    };
     return newdate
 }
 
@@ -882,7 +887,7 @@ function connectionData(dbname,collname){
             _id:{connection:{$convert:{input:"$conn",to:"long",onError:"$conn"}},restart:sw},
             reslen:{$sum:"$attr.reslen"},
             hasStart:{$sum:{$cond:[{$or:[{$eq:["$id",22943]},{$eq:["$msg","Connection accepted"]}]},1,0]}},
-            hasEnd:{$sum:{$cond:[{$or:[{$eq:["$msg","Connection accepted"]},{$eq:["$id",22944]}]},1,0]}},
+            hasEnd:{$sum:{$cond:[{$or:[{$eq:["$msg","Connection ended"]},{$eq:["$id",22944]}]},1,0]}},
             hasMetadata:{$sum:{$cond:[{$eq:["$id",51800]},1,0]}},
             first:{$min:"$t"},
             last:{$max:"$t"},
@@ -893,6 +898,8 @@ function connectionData(dbname,collname){
             driver:{$addToSet:"$attr.doc.driver"},
             os:{$addToSet:"$attr.doc.os"},
             errors:{$addToSet:"$attr.error.errmsg"},
+            loadBalanced:{$addToSet:"$attr.isLoadBalanced"},
+            sourceClient:{$addToSet:"$attr.sourceClient"},
             disconnect:{$addToSet:{$cond:[{$or:[{$eq:["$msg","Connection ended"]},{$eq:["$id",20883]}]},"$msg",undefined]}},
             receivedFirst:{$addToSet:{$cond:[{"$eq":["$msg","Received first command on ingress connection since session start or auth handshake"]},"$t",undefined]}}
       }},
@@ -903,36 +910,6 @@ function connectionData(dbname,collname){
       {$sort:{"_id.restart":1,"_id.connection":1,"first":1}}
   ])
 }
-
-function connectionCSVOrig(filename, dbname, collname) {
-    if (filename === undefined) {
-        print("Usage:\n\tconnection(<filename>,<dbname>,<collection name>)")
-        return
-    }
-    require("fs");
-    return fs.writeFileSync(filename,
-        ['"Restart","Connection","Remote","Connect","Disconnect","Duration","Authentication","Driver Name","Driver Version","Application","OS Type","OS Name","Version","Arch","Errors"'].concat(
-            connectionData(dbname,collname).toArray().map(o=>{
-                return [
-                    o._id.restart,
-                    o._id.connection,
-                    o.remote[0],
-                    o.hasStart?o.first.toISOString():"",
-                    o.hasEnd?o.last.toISOString():"",
-                    (o.hasStart && o.hasEnd)?(o.last - o.first):"",
-                    (o.auth.length>0)?o.auth.map(e=>e.principal + "@" + e.db + " " +e.success).join("/").replace(/,/g,""):"",
-                    o.driver[0]?.name?o.driver[0].name:"",
-                    o.driver[0]?.version?o.driver[0].version:"",
-                    o.app[0]?o.app[0]:"",
-                    o.os[0]?.type?o.os[0].type:"",
-                    o.os[0]?.name?o.os[0].name:"",
-                    o.os[0]?.version?o.os[0].version:"",
-                    o.os[0]?.architecture?o.os[0].architecture:"",
-                    o.errors.join(",").replace(/,/g," ")
-                ].map(o=>JSON.stringify(o)).join(",")})).join("\n")
-    )
-}
-
 
 async function connectionCSV(filename, dbname, collname) {
     if (filename === undefined) {
@@ -946,7 +923,7 @@ async function connectionCSV(filename, dbname, collname) {
         throw new Error("Failed to open file "+filename);
     }
 
-    handle.write('"Restart","Connection","Remote","Connect","Disconnect","Duration","Authentication","Received First","Driver Name","Driver Version","Application","OS Type","OS Name","Version","Arch","Errors"');
+    handle.write('"Restart","Connection","Remote","Load Balanced","Load Balancer","Connect","Disconnect","Duration","Authentication","Received First","Driver Name","Driver Version","Application","OS Type","OS Name","Version","Arch","Errors"');
     handle.write("\n");
     var cursor = connectionData(dbname,collname)
     while (cursor.hasNext()) {
@@ -954,7 +931,9 @@ async function connectionCSV(filename, dbname, collname) {
         var linedata = [
             obj._id.restart,
             obj._id.connection.toString(),
-            obj.remote[0],
+            (obj.loadBalanced.length > 0 && obj.loadBalanced[0] && obj.sourceClient.length > 0)?obj.sourceClient[0]:obj.remote[0],
+            obj.loadBalanced[0],
+            (obj.loadBalanced.length > 0 && obj.loadBalanced[0])?obj.remote[0]:"",
             obj.hasStart?obj.first.toISOString():"",
             obj.hasEnd?obj.last.toISOString():"",
             (obj.hasStart && obj.hasEnd)?(obj.last - obj.first):"",
@@ -1216,3 +1195,15 @@ function getMethods(obj) {
 
     return [...methods].filter(m => !(m == "constructor" || m.match(/^__/))) ;
 }    
+
+// calculate elapsed time for each step of slow serverStatus
+function slowServerStatus(obj) {
+    let timeStats = obj.attr.timeStats;
+    let reduceFun = function(acc, key) {
+        acc[1][key] = timeStats[key] - acc[0];
+        acc[0] = timeStats[key];
+        return acc;
+    }
+    let reduced = Object.keys(timeStats).reduce(reduceFun,[0,{}]);
+    return reduced[1];
+}

@@ -39,7 +39,7 @@ for i, chunk in enumerate(readers.read_ftdc(sys.argv[1])):
         _msgr("\x1b[2K\r %4d %3d %d\r"%(i,idx, chunk[('start',)][idx]))
         for key in chunk.keys():
             assign(chunk.full_ref_doc, key, chunk[key][idx])
-        dumps(chunk.full_ref_doc)
+        outf.write(dumps(chunk.full_ref_doc))
         outf.write("\n")
 
 _msg("\nDone.")

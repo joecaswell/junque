@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 import struct
 import sys
 import os
@@ -12,7 +12,7 @@ import signal
 try:
     import snappy
 except:
-    print 'snappy not available, will not print the content of compressed pages'
+    print('snappy not available, will not print the content of compressed pages')
     snappy = None
 
 
@@ -98,7 +98,7 @@ class indent:
     def prt(self, at=0, s=None):
         if not self.hidden:
             if s:
-                print '%s%08x:%s %s' % (self.p, at, self._indent, s)
+                print('%s%08x:%s %s' % (self.p, at, self._indent, s))
             else:
                 print
 
@@ -113,8 +113,17 @@ def dbg(*args):
 # bson
 #
 
+# hack for python 2->3
+def myord(c):
+    if isinstance(c, str):
+        return ord(c)
+    elif isinstance (c,int):
+        return c
+    else:
+        raise ValueError("Expected string of length 1")
+
 def get_char(buf, at):
-    return at+1, ord(buf[at])
+    return at+1, myord(buf[at])
 
 def get_int(buf, at):
     return at+4, unpack_from('i', buf, at)[0]
@@ -153,7 +162,7 @@ def info_bindata(buf, at):
     info = 'bindata len=%d sub=%d' % (l, sub)
     if do_bson_detail:
         for c in buf[at:at+l]:
-            info += ' %02x' % ord(c)
+            info += ' %02x' % myord(c)
         info += ' ' + base64.b64encode(buf[at:at+l])
     return at+l, info
 
@@ -164,7 +173,7 @@ def info_regexp(buf, at):
 
 def info_basic(name, l, buf, at):
     for i in range(0,l):
-        name += ' %02x' % ord(buf[at+i])
+        name += ' %02x' % myord(buf[at+i])
     return at+l, name
 
 def info_time(name, l, fmt, scale=1, skip=0):
@@ -172,7 +181,8 @@ def info_time(name, l, fmt, scale=1, skip=0):
         t = unpack_from(fmt, buf, at+skip)[0] / scale
         at, info = info_basic(name, l, buf, at)
         try: t = datetime.datetime.utcfromtimestamp(t).isoformat() + 'Z'
-        except Exception, e: t = str(e)
+        except Exception as e:
+            t = str(e)
         return at, info + ' =' + t
     return info
 
@@ -286,16 +296,16 @@ CELL_VALUE_OVFL_RM = (11 << 4) # Overflow value (removed)
 # 110xxxxx yyyyyyyy -> xxxxxyyyyyyyy + 64
 # 1110xxxx ...      -> ...
 def unpack_uint(buf, at=0):
-    i = ord(buf[at])
+    i = myord(buf[at])
     if i&0xC0==0x80: # 1 byte
         return at+1, i&0x3F
     elif i&0xE0==0xC0: # 2 byte
-        return at+2, (((i&0x1F)<<8) | ord(buf[at+1])) + 64
+        return at+2, (((i&0x1F)<<8) | myord(buf[at+1])) + 64
     elif i&0xE0==0xE0: # multi-byte
         i &= 0xF
         x = 0
         for j in range(i):
-            x = (x<<8) | ord(buf[at+1+j])
+            x = (x<<8) | myord(buf[at+1+j])
         return at+1+i, x + 8192 + 64 # check this
     else:
         raise Exception('unhandled uint 0x%x' % i)
@@ -304,7 +314,7 @@ def unhandled_desc(desc):
     raise Exception('unhandled desc=0x%x\n' % desc)        
 
 def hexbytes(content):
-    return ' '.join(('%02x' % ord(c)) for c in content)
+    return ' '.join(('%02x' % myord(c)) for c in content)
 
 def record_id(x):
     try:
@@ -332,7 +342,7 @@ def cell_kv(desc, buf, at, short, key, find=None, prefix=False):
         if prefix:
             end += 1
             info += '+pfx'
-            pfx_len = ord(buf[at])
+            pfx_len = myord(buf[at])
             content = last_key_content[0:pfx_len] + buf[at+1:end] 
         else:
             content = buf[at:end]
@@ -344,7 +354,7 @@ def cell_kv(desc, buf, at, short, key, find=None, prefix=False):
         pfx_len = 0
         if prefix:
             info += '+pfx'
-            at, pfx_len = at+1, ord(buf[at])
+            at, pfx_len = at+1, myord(buf[at])
         at, sz = unpack_uint(buf, at+1)
         sz += 64
         end = at + sz
@@ -407,7 +417,7 @@ def cell_addr(desc, buf, at, info):
     return a + sz, False, None
 
 def cell(buf, at, find=None):
-    desc = ord(buf[at])
+    desc = myord(buf[at])
     if   desc&3==CELL_SHORT_KEY:     return cell_kv(desc, buf, at, short=True, key=True, find=find)
     elif desc&3==CELL_SHORT_VALUE:   return cell_kv(desc, buf, at, short=True, key=False)
     elif desc&3==CELL_SHORT_KEY_PFX: return cell_kv(desc, buf, at, short=True, key=True, find=find, prefix=True)
@@ -555,7 +565,7 @@ def page(buf, at, root, avail, compressor, find=None):
     # entries
     found = False
     if not valid:
-        print 'skipping apparently invalid page'
+        print('skipping apparently invalid page')
     elif ts=='BLOCK_MANAGER':
         indent.indent()
         if do_block_manager_entry:
@@ -577,7 +587,7 @@ def page(buf, at, root, avail, compressor, find=None):
     elif ts=='OVFL':
         embedded_bson(buf, at, at+4)
     else:
-        print 'unhandled page type'
+        print('unhandled page type')
 
     # done
     indent.pfx('')
@@ -598,11 +608,11 @@ def parse_meta(info):
     pat += 'addr="([0-9a-f]+)".*?time=([0-9]+).*?write_gen=([0-9]+)'
     m = re.search(pat, info)
     if not m:
-        print 'no addr info; no data or no checkpoint?'
+        print('no addr info; no data or no checkpoint?')
         return None, None, None
     compressor = m.group(1)
-    print 'checkpoint time', datetime.datetime.utcfromtimestamp(int(m.group(3))).isoformat() + 'Z'
-    print 'write gen', int(m.group(4))
+    print('checkpoint time', datetime.datetime.utcfromtimestamp(int(m.group(3))).isoformat() + 'Z')
+    print('write gen', int(m.group(4)))
     addr = m.group(2)
     dbg('addr', addr)
     buf = ''.join(chr(int(addr[i:i+2],16)) for i in range(0, len(addr), 2))
@@ -615,7 +625,7 @@ def parse_meta(info):
     at, fsz = unpack_uint(buf, at)
     at, ckptsz = unpack_uint(buf, at)
     #at, gen = unpack_uint(buf, at) # ???
-    #print ord(version), root, alloc, avail, discard, fsz, ckptsz
+    #print(ord(version), root, alloc, avail, discard, fsz, ckptsz)
     return root, alloc, avail, compressor
 
 def print_file(fn, at, meta, find=None):
@@ -627,8 +637,9 @@ def print_file(fn, at, meta, find=None):
     is_wiredtiger = 'WiredTiger.wt' in fn
 
     # mmap file
-    print fn
+    print("Open: ",fn)
     f = open(fn, 'rb')
+    print(f)
     sz = os.fstat(f.fileno()).st_size # 2.4 won't accept 0
     buf = mmap.mmap(f.fileno(), sz, prot=mmap.PROT_READ)
 
@@ -639,7 +650,6 @@ def print_file(fn, at, meta, find=None):
     if meta:
         try:
             r, u, a, compressor = parse_meta(meta)
-            print '%s: r=%s u=%s a=%s' % (fn, fmt_cookie(r), fmt_cookie(u), fmt_cookie(a))
             if r:
                 root = (r[0]+1) * 4096
             if a:
@@ -649,10 +659,11 @@ def print_file(fn, at, meta, find=None):
                 if not do_dbg: indent.show()
         except Exception as e:
             if not do_dbg: indent.show()
-            if do_dbg: print e
-            print 'problem reading extlist for %s at %x, proceeding without avail list' % (fn, a)
+            if do_dbg: print(e)
+            a = locals().get('a',-1)
+            print('problem reading extlist for %s at %x, proceeding without avail list' % (fn, a))
 
-    # print the page(s)
+    # print(the page(s))
     if at==0 or do_pages:
         if at==0:
             at = block_desc(buf, at)
@@ -665,6 +676,7 @@ def print_file(fn, at, meta, find=None):
 
 
 def find_key(dbpath, fn, meta, key):
+    print("find_key ",dbpath,fn,meta,key)
     indent.hide()
     fn = os.path.join(dbpath, fn)
     found = print_file(fn, 0, meta, find=key)
@@ -678,9 +690,13 @@ def print_with_meta(fn, at):
     while True:
         try:
             meta = open(os.path.join(dbpath, 'WiredTiger.turtle')).read()
+            print("turtle meta ",meta)
             if os.path.basename(fn) != 'WiredTiger.wt':
+                print("found WiredTiger.wt")
                 f = fn[len(dbpath)+1 if dbpath else 0 : ]
+                print("f is ",f)
                 meta = find_key(dbpath, 'WiredTiger.wt', meta, 'file:%s\x00' % f)
+                print("meta is ",meta)
             break
         except Exception as e:
             exc = e
@@ -689,15 +705,15 @@ def print_with_meta(fn, at):
         dbpath = dbpath.rsplit('/', 1)[0]
     if not meta:
         if exc:
-            print 'metadata not available:', exc
-        print 'proceeding without metadata; all pages, including available pages, will be printed'
+            print('metadata not available:', exc)
+        print('proceeding without metadata; all pages, including available pages, will be printed')
     print_file(fn, at, meta)
 
 #
 #
 #
 
-print '===', ' '.join(sys.argv[0:])
+print('===', ' '.join(sys.argv[0:]))
 
 # what to do
 do_pages = 'q' in sys.argv[1]
