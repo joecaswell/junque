@@ -869,7 +869,7 @@ function connectionData(dbname,collname){
     tag=65;
     sw=String.fromCharCode(tag);
     c=db.getSiblingDB(dbname).getCollection(collname);
-    branches=c.find({ id: 20698 }, { t: 1, _id: 0 }).toArray().map(
+    branches=c.find({$or:[{ id: 20698 },{"msg":"mongos startup complete"},{"msg":"MongoDB starting"}]}, { t: 1, _id: 0 }).toArray().map(
         function (o) {
             return {case:{$lt:["$t",o.t]},then:String.fromCharCode(tag++)};
         });
@@ -879,6 +879,7 @@ function connectionData(dbname,collname){
     return c.aggregate([
         {$match:{$or:[
 //            {id:{$in:[22943,22944,22989,51800,51803,20429,20250,20883,5286306,5286307]}},
+            {id:{$in:[24031]}},
             {msg:{$in:["Successfully authenticated","Connection accepted","Connection ended","Failed to authenticate","Slow query","client metadata","Interrupted operation as its client disconnected","Received first command on ingress connection since session start or auth handshake"]}}
         ]}},
         {$sort: {t:1}},
@@ -897,11 +898,12 @@ function connectionData(dbname,collname){
             app:{$addToSet:"$attr.doc.application.name"},
             driver:{$addToSet:"$attr.doc.driver"},
             os:{$addToSet:"$attr.doc.os"},
-            errors:{$addToSet:"$attr.error.errmsg"},
+            errors:{$addToSet:{$cond:{if:{$eq:["$id",24031]},then:"$attr.message",else:"$attr.error.errmsg"}}},
             loadBalanced:{$addToSet:"$attr.isLoadBalanced"},
             sourceClient:{$addToSet:"$attr.sourceClient"},
             disconnect:{$addToSet:{$cond:[{$or:[{$eq:["$msg","Connection ended"]},{$eq:["$id",20883]}]},"$msg",undefined]}},
-            receivedFirst:{$addToSet:{$cond:[{"$eq":["$msg","Received first command on ingress connection since session start or auth handshake"]},"$t",undefined]}}
+            receivedFirst:{$addToSet:{$cond:[{"$eq":["$msg","Received first command on ingress connection since session start or auth handshake"]},"$t",undefined]}},
+            logs:{$push:"$id"}
       }},
       {$addFields:{
                 errors:{$concatArrays:["$errors",{$filter:{input:"$disconnect",cond:{$ne:["$$this",null]}}}]}
